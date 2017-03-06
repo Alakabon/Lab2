@@ -1,0 +1,12 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="ca.polymtl.inf8405.lab2.MainActivity">
+
+    <item
+        android:id="@+id/menu_status"
+        android:orderInCategory="101"
+        android:title="@string/menu_status"
+        android:icon="@drawable/online"
+        app:showAsAction="always" />
+</menu>
