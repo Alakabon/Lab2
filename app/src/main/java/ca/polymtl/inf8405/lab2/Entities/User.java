@@ -1,35 +1,61 @@
 package ca.polymtl.inf8405.lab2.Entities;
 
-import com.google.firebase.database.Exclude;
-
-/**
- * Created by Marco on 3/4/2017.
- */
+import android.location.Location;
 
 public class User {
     private String name;
     private String group;
-    private String photo_location;
-
-    public User(String name, String group) {
+    private String photo_url;
+    private double gpsLongitude;
+    private double gpsLatitude;
+    
+    public User() {
+    }
+    
+    public User(String name, String group, String photo_url, double gpsLongitude, double gpsLatitude) {
         this.name = name;
         this.group = group;
+        this.photo_url = photo_url;
+        this.gpsLongitude = gpsLongitude;
+        this.gpsLatitude = gpsLatitude;
     }
-
-    @Exclude
+    
+    public double getGpsLongitude() {
+        return gpsLongitude;
+    }
+    
+    public void setGpsLongitude(double gpsLongitude) {
+        this.gpsLongitude = gpsLongitude;
+    }
+    
+    public double getGpsLatitude() {
+        return gpsLatitude;
+    }
+    
+    public void setGpsLatitude(double gpsLatitude) {
+        this.gpsLatitude = gpsLatitude;
+    }
+    
+    public String getPhoto_url() {
+        return photo_url;
+    }
+    
+    public void setPhoto_url(String photo_url) {
+        this.photo_url = photo_url;
+    }
+    
     public String getName() {
         return name;
     }
-    @Exclude
+    
+    public void setName(String name) {
+        this.name = name;
+    }
+    
     public String getGroup() {
         return group;
     }
-    @Exclude
-    public void setName(String name) {
-
-        this.name = name;
-    }
-    @Exclude
+    
     public void setGroup(String group) {
         this.group = group;
     }

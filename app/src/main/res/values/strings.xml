@@ -15,4 +15,8 @@
     <string name="lbl_InternetStatus">Statut de l\'Internet :</string>
     <string name="lbl_Latitude">Latitude :</string>
     <string name="lbl_Longitude">Longitude :</string>
+    <string name="rsvp_Yes">Participe</string>
+    <string name="rsvp_No">Ne participe pas</string>
+    <string name="rsvp_Maybe">Participe peut-être</string>
+    <string name="err_DBM_login_failed">Impossible de connecter l\'utilisateur a la base de donne</string>
 </resources>

@@ -1,7 +1,8 @@
-package ca.polymtl.inf8405.lab2;
+package ca.polymtl.inf8405.lab2.Activities;
 
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.location.Location;
 import android.net.ConnectivityManager;
 import android.support.design.widget.TabLayout;
 import android.support.design.widget.FloatingActionButton;
@@ -14,6 +15,25 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+
+import java.util.Calendar;
+
+import ca.polymtl.inf8405.lab2.Entities.EventLocation;
+import ca.polymtl.inf8405.lab2.Entities.User;
+import ca.polymtl.inf8405.lab2.Managers.DatabaseManager;
+import ca.polymtl.inf8405.lab2.Managers.EventsManager;
+import ca.polymtl.inf8405.lab2.Managers.GPSManager;
+import ca.polymtl.inf8405.lab2.Managers.GlobalDataManager;
+import ca.polymtl.inf8405.lab2.Managers.LowBatteryManager;
+import ca.polymtl.inf8405.lab2.Managers.MapsManager;
+import ca.polymtl.inf8405.lab2.Managers.NetworkManager;
+import ca.polymtl.inf8405.lab2.Managers.PlaceManager;
+import ca.polymtl.inf8405.lab2.Managers.ProfileManager;
+import ca.polymtl.inf8405.lab2.Managers.SectionsPagerAdapter;
+import ca.polymtl.inf8405.lab2.Managers.StatusManager;
+import ca.polymtl.inf8405.lab2.R;
 
 public class MainActivity extends AppCompatActivity {
     /**
@@ -29,6 +49,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        
 
         /* BroadcastReceiver registration section
            In Android these are the components that listen to broadcast events.
@@ -46,13 +67,15 @@ public class MainActivity extends AppCompatActivity {
         registerReceiver(new NetworkManager(), new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
 
         GPSManager _gps = new GPSManager(this);
+        final DatabaseManager _dbManager = new DatabaseManager(this,null,null); // Params subject to change
+        _dbManager.configureAppDB(true);
 
         // Create the adapter that will return a fragment for each of the three
         // primary sections of the activity.
         Fragment[] _fgms = {new ProfileManager(), new MapsManager(), new PlaceManager(), new EventsManager(), new StatusManager()};
         ((GlobalDataManager) this.getApplicationContext()).setTabs(_fgms, this);
 
-        // The ViewPager that will host the section contents and seting up the ViewPager with the sections adapter.
+        // The ViewPager that will host the section contents and setting up the ViewPager with the sections adapter.
         ViewPager _vp = (ViewPager) findViewById(R.id.vpContainer);
         _vp.setAdapter(new SectionsPagerAdapter(getSupportFragmentManager(), this, _fgms));
 
@@ -64,13 +87,39 @@ public class MainActivity extends AppCompatActivity {
         _tab.getTabAt(3).setIcon(R.drawable.events_icon);
         _tab.getTabAt(4).setIcon(R.drawable.status_icon);
 
+        //Profile saving
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab_save);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Snackbar.make(view, getString(R.string.msg_save), Snackbar.LENGTH_LONG).setAction("Action", null).show();
+                
+                // Make user and link to DB
+                EditText nameField = (EditText) findViewById(R.id.txt_alias);
+                EditText groupField = (EditText) findViewById(R.id.txt_group);
+                
+                User currentUser = new User(nameField.getText().toString(),groupField.getText().toString(),"", 0,0 );
+                
+                _dbManager.set_currentUser(currentUser);
+                _dbManager.login();
+                
             }
         });
+        
+        FloatingActionButton fabDebugAdd = (FloatingActionButton) findViewById(R.id.fab_add__debug_event);
+        fabDebugAdd.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                EditText nameField = (EditText) findViewById(R.id.txt_alias);
+                EditText groupField = (EditText) findViewById(R.id.txt_group);
+    
+                User currentUser = new User(nameField.getText().toString(),groupField.getText().toString(),"", 0,0 );
+                
+                EventLocation eventLocation = new EventLocation(currentUser.getGroup(),"debugLocation",0,0,null,"no_photo",false, Calendar.getInstance().getTime(),Calendar.getInstance().getTime(),"no info", null);
+                _dbManager.addEventLocation(eventLocation);
+            }
+        });
+        
     }
 
     @Override

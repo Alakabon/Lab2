@@ -1,4 +1,4 @@
-package ca.polymtl.inf8405.lab2;
+package ca.polymtl.inf8405.lab2.Managers;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -9,6 +9,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
+
+import ca.polymtl.inf8405.lab2.R;
 
 public class ProfileManager extends Fragment {
     View _view;

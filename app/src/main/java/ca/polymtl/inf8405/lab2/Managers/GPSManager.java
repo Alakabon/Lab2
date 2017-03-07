@@ -1,4 +1,4 @@
-package ca.polymtl.inf8405.lab2;
+package ca.polymtl.inf8405.lab2.Managers;
 
 import android.content.Context;
 import android.location.Criteria;
@@ -7,12 +7,12 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 
-class GPSManager {
+public class GPSManager {
     private Context _ctx;
 
     private Location _loc;
 
-    GPSManager(Context context) {
+    public GPSManager(Context context) {
         _ctx = context;
         try {
             LocationManager _lm = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);

@@ -1,4 +1,4 @@
-package ca.polymtl.inf8405.lab2;
+package ca.polymtl.inf8405.lab2.Managers;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;

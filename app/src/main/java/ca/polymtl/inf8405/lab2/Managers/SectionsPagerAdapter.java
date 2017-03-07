@@ -1,20 +1,22 @@
-package ca.polymtl.inf8405.lab2;
+package ca.polymtl.inf8405.lab2.Managers;
 
 import android.content.Context;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 
+import ca.polymtl.inf8405.lab2.R;
+
 /**
  * A FragmentPagerAdapter that returns a fragment corresponding to
  * one of the sections/tabs/pages.
  */
-class SectionsPagerAdapter extends FragmentPagerAdapter {
+public class SectionsPagerAdapter extends FragmentPagerAdapter {
 
     private Context _ctx;
     private Fragment[] _fgms;
 
-    SectionsPagerAdapter(FragmentManager fm, Context ctx, Fragment[] fgms) {
+    public SectionsPagerAdapter(FragmentManager fm, Context ctx, Fragment[] fgms) {
         super(fm);
         _ctx = ctx;
         _fgms = fgms;
