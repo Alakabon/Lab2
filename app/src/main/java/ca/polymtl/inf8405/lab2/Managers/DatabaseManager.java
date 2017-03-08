@@ -3,12 +3,14 @@ package ca.polymtl.inf8405.lab2.Managers;
 import android.content.Context;
 import android.util.Log;
 
+import com.google.firebase.FirebaseException;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.io.IOException;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
@@ -97,8 +99,26 @@ public class DatabaseManager {
     public void configureAppDB(boolean enableOfflineStorage) {
         FirebaseDatabase.getInstance().setPersistenceEnabled(enableOfflineStorage);
     }
-    
-    
+
+    public boolean saveUserData(User userData) {
+        try {
+            //ToDo: Save each field in the DB
+            return true;
+        }
+        catch (Exception ex){
+            return false;
+        }
+    }
+
+    public User retriveUserData(String userName) {
+        try {
+            //ToDo: Read user data from DB based on userName and return the user object
+            return new User();
+        }catch (Exception ex){
+            return new User();
+        }
+    }
+
     public Group get_group() {
         return _group;
     }
@@ -130,5 +150,4 @@ public class DatabaseManager {
     public void set_currentUser(User _currentUser) {
         this._currentUser = _currentUser;
     }
-    
 }

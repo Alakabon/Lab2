@@ -43,6 +43,8 @@ public class MainActivity extends AppCompatActivity {
      * loaded fragment in memory.
      */
 
+    private String _last_username = "";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -50,7 +52,6 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         
-
         /* BroadcastReceiver registration section
            In Android these are the components that listen to broadcast events.
            Broadcast events are events that are sent with the intention of notifying multiple receivers.
@@ -70,10 +71,11 @@ public class MainActivity extends AppCompatActivity {
         final DatabaseManager _dbManager = new DatabaseManager(this,null,null); // Params subject to change
         _dbManager.configureAppDB(true);
 
-        // Create the adapter that will return a fragment for each of the three
-        // primary sections of the activity.
+        // Create the adapter that will return a fragment for each of primary sections of the activity.
         Fragment[] _fgms = {new ProfileManager(), new MapsManager(), new PlaceManager(), new EventsManager(), new StatusManager()};
-        ((GlobalDataManager) this.getApplicationContext()).setTabs(_fgms, this);
+        final GlobalDataManager _gdm = (GlobalDataManager) this.getApplicationContext();
+        _gdm.setUserData(_dbManager.retriveUserData(_last_username));
+        _gdm.setTabs(_fgms, this);
 
         // The ViewPager that will host the section contents and setting up the ViewPager with the sections adapter.
         ViewPager _vp = (ViewPager) findViewById(R.id.vpContainer);
@@ -87,11 +89,11 @@ public class MainActivity extends AppCompatActivity {
         _tab.getTabAt(3).setIcon(R.drawable.events_icon);
         _tab.getTabAt(4).setIcon(R.drawable.status_icon);
 
-        //Profile saving
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab_save);
-        fab.setOnClickListener(new View.OnClickListener() {
+        //Preparing and Saving data to DB
+        ((FloatingActionButton) findViewById(R.id.fab_save)).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                _dbManager.saveUserData(_gdm.getUserData());
                 Snackbar.make(view, getString(R.string.msg_save), Snackbar.LENGTH_LONG).setAction("Action", null).show();
                 
                 // Make user and link to DB
