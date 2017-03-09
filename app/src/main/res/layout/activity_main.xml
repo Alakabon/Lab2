@@ -53,8 +53,9 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
         android:layout_margin="@dimen/fab_margin"
-        app:srcCompat="@drawable/save_icon"
-        app:fabSize="mini" />
+        app:backgroundTint="@android:color/darker_gray"
+        app:fabSize="mini"
+        app:srcCompat="@drawable/save_icon" />
 
 </android.support.design.widget.CoordinatorLayout>
 

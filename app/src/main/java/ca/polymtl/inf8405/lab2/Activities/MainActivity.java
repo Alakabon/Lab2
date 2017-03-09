@@ -1,8 +1,11 @@
 package ca.polymtl.inf8405.lab2.Activities;
 
+import android.accounts.Account;
+import android.accounts.AccountManager;
+import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.location.Location;
+import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.support.design.widget.TabLayout;
 import android.support.design.widget.FloatingActionButton;
@@ -15,10 +18,14 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.TextView;
 
 import java.util.Calendar;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Random;
 
 import ca.polymtl.inf8405.lab2.Entities.EventLocation;
 import ca.polymtl.inf8405.lab2.Entities.User;
@@ -43,14 +50,17 @@ public class MainActivity extends AppCompatActivity {
      * loaded fragment in memory.
      */
 
-    private String _last_username = "";
+    private String _last_username;
+    SharedPreferences _sharedPref;
 
+    //___________________________________________________________________________________________________________________________________//
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        _sharedPref = this.getSharedPreferences("PREF_DATA", Context.MODE_PRIVATE);
         
         /* BroadcastReceiver registration section
            In Android these are the components that listen to broadcast events.
@@ -68,12 +78,13 @@ public class MainActivity extends AppCompatActivity {
         registerReceiver(new NetworkManager(), new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
 
         GPSManager _gps = new GPSManager(this);
-        final DatabaseManager _dbManager = new DatabaseManager(this,null,null); // Params subject to change
+        final DatabaseManager _dbManager = new DatabaseManager(this, null, null); // Params subject to change
         _dbManager.configureAppDB(true);
 
         // Create the adapter that will return a fragment for each of primary sections of the activity.
         Fragment[] _fgms = {new ProfileManager(), new MapsManager(), new PlaceManager(), new EventsManager(), new StatusManager()};
         final GlobalDataManager _gdm = (GlobalDataManager) this.getApplicationContext();
+        _last_username = getLastUsedUsername();
         _gdm.setUserData(_dbManager.retriveUserData(_last_username));
         _gdm.setTabs(_fgms, this);
 
@@ -93,37 +104,48 @@ public class MainActivity extends AppCompatActivity {
         ((FloatingActionButton) findViewById(R.id.fab_save)).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                _dbManager.saveUserData(_gdm.getUserData());
-                Snackbar.make(view, getString(R.string.msg_save), Snackbar.LENGTH_LONG).setAction("Action", null).show();
-                
-                // Make user and link to DB
-                EditText nameField = (EditText) findViewById(R.id.txt_alias);
-                EditText groupField = (EditText) findViewById(R.id.txt_group);
-                
-                User currentUser = new User(nameField.getText().toString(),groupField.getText().toString(),"", 0,0 );
-                
-                _dbManager.set_currentUser(currentUser);
-                _dbManager.login();
-                
+                try {
+                    _gdm.getUserData().setName(((EditText) findViewById(R.id.txt_alias)).getText().toString());
+                    _gdm.getUserData().setGroup(((EditText) findViewById(R.id.txt_group)).getText().toString());
+                    _gdm.getUserData().setPhoto_url(((ImageView) findViewById(R.id.img_profile)).getTag().toString());
+                    _gdm.getUserData().setGpsLatitude(Double.valueOf(((TextView) findViewById(R.id.txt3)).getText().toString()));
+                    _gdm.getUserData().setGpsLongitude(Double.valueOf(((TextView) findViewById(R.id.txt4)).getText().toString()));
+                    _dbManager.saveUserData(_gdm.getUserData());
+                    Snackbar.make(view, getString(R.string.msg_save), Snackbar.LENGTH_LONG).setAction("Action", null).show();
+
+                    // Make user and link to DB
+                    EditText nameField = (EditText) findViewById(R.id.txt_alias);
+                    EditText groupField = (EditText) findViewById(R.id.txt_group);
+
+                    User currentUser = new User(nameField.getText().toString(), groupField.getText().toString(), "", 0, 0);
+
+                    _dbManager.set_currentUser(currentUser);
+                    _dbManager.login();
+                }catch (Exception ex){
+                    Snackbar.make(view, "ERROR:" + ex.getMessage(), Snackbar.LENGTH_LONG).setAction("Action", null).show();
+                }
+
             }
         });
-        
+
         FloatingActionButton fabDebugAdd = (FloatingActionButton) findViewById(R.id.fab_add__debug_event);
         fabDebugAdd.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 EditText nameField = (EditText) findViewById(R.id.txt_alias);
                 EditText groupField = (EditText) findViewById(R.id.txt_group);
-    
-                User currentUser = new User(nameField.getText().toString(),groupField.getText().toString(),"", 0,0 );
-                
-                EventLocation eventLocation = new EventLocation(currentUser.getGroup(),"debugLocation",0,0,null,"no_photo",false, Calendar.getInstance().getTime(),Calendar.getInstance().getTime(),"no info", null);
+
+                User currentUser = new User(nameField.getText().toString(), groupField.getText().toString(), "", 0, 0);
+
+                EventLocation eventLocation = new EventLocation(currentUser.getGroup(), "debugLocation", 0, 0, null, "no_photo", false, Calendar.getInstance().getTime(), Calendar.getInstance().getTime(), "no info", null);
                 _dbManager.addEventLocation(eventLocation);
             }
         });
-        
+
     }
 
+
+    //___________________________________________________________________________________________________________________________________//
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -133,6 +155,7 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
+    //___________________________________________________________________________________________________________________________________//
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
@@ -146,5 +169,36 @@ public class MainActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    //___________________________________________________________________________________________________________________________________//
+    // Reading saved preferences (e.g., Last username) for loading proper user object from Firebase
+    // If it was empty, strip out the username from the GMail address
+    // Otherwise, will create a random username
+    private String getLastUsedUsername() {
+        String _username = _sharedPref.getString(getString(R.string.name_alias), "");
+        if (_username.isEmpty()) {
+            List<String> _emails = new LinkedList<String>();
+            for (Account account : AccountManager.get(this).getAccountsByType("com.google"))
+                _emails.add(account.name);
+
+            if (!_emails.isEmpty() && _emails.get(0) != null) {
+                String[] parts = _emails.get(0).split("@");
+                if (parts.length > 1) return parts[0];
+            }
+
+            return "User".concat(String.valueOf(new Random().nextInt(2000 - 1000) + 1000));
+        }
+        return _username;
+    }
+
+    //___________________________________________________________________________________________________________________________________//
+    // Using SharedPreferences to store preferences of the application when application is closing
+    @Override
+    public void onStop() {
+        super.onStop();
+        SharedPreferences.Editor _editor = _sharedPref.edit();
+        _editor.putString(getString(R.string.name_alias), _last_username);
+        _editor.apply();
     }
 }

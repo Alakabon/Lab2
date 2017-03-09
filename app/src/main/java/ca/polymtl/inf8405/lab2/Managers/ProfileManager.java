@@ -2,13 +2,16 @@ package ca.polymtl.inf8405.lab2.Managers;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
 import android.util.Base64;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 
 import java.io.ByteArrayOutputStream;
@@ -16,13 +19,17 @@ import java.io.ByteArrayOutputStream;
 import ca.polymtl.inf8405.lab2.R;
 
 public class ProfileManager extends Fragment {
+    public static final String TAG = "ProfileManager";
     private static final int REQUEST_IMAGE_CAPTURE = 8405;  //Constant value which will be used to identify specific camera results
     private View _view;
+    private GlobalDataManager _gdm;
 
+    //___________________________________________________________________________________________________________________________________//
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         //Inflate the Fragment's view and call findViewById() on the View to set event handler
         _view = inflater.inflate(R.layout.tab1_profile, container, false);
+        _gdm = (GlobalDataManager) getActivity().getApplicationContext();
         ((Button) _view.findViewById(R.id.btn_camera)).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) { //Defines the method that will call when the user click on the button
@@ -42,9 +49,38 @@ public class ProfileManager extends Fragment {
             }
         });
 
+        putDataInViews();
         return _view;
     }
 
+    //___________________________________________________________________________________________________________________________________//
+    // Capture the focus state of fragment and load data to views
+    @Override
+    public void setMenuVisibility(final boolean visible) {
+        super.setMenuVisibility(visible);
+        if (visible) putDataInViews();
+    }
+
+    //___________________________________________________________________________________________________________________________________//
+    // Load data to Views of the Fragment based on latest values in GlobalDataManager
+    private void putDataInViews() {
+        try {
+            if (_view != null && _gdm != null) {
+                ((EditText) _view.findViewById(R.id.txt_alias)).setText(_gdm.getUserData().getName());
+                ((EditText) _view.findViewById(R.id.txt_group)).setText(_gdm.getUserData().getGroup());
+                byte[] _bytes = android.util.Base64.decode(_gdm.getUserData().getPhoto_url(), Base64.DEFAULT);
+                if (_bytes.length == 0) {
+                    ((ImageView) _view.findViewById(R.id.img_profile)).setImageResource(R.drawable.profile);
+                } else {
+                    ((ImageView) _view.findViewById(R.id.img_profile)).setImageBitmap(BitmapFactory.decodeByteArray(_bytes, 0, _bytes.length));
+                }
+            }
+        } catch (Exception ex) {
+            Log.e(TAG, ex.getMessage());
+        }
+    }
+
+    //___________________________________________________________________________________________________________________________________//
     //The result of the action we are launching will be returned automatically to this callback method
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -58,10 +94,11 @@ public class ProfileManager extends Fragment {
                 //Base64 is a format of binary-to-text encoding and let us to store binary as string in Firebase
                 ByteArrayOutputStream _stream = new ByteArrayOutputStream();
                 _photo.compress(Bitmap.CompressFormat.PNG, 100, _stream);
-                ((GlobalDataManager) getActivity().getApplicationContext()).setPhoto_URL(Base64.encodeToString(_stream.toByteArray(), Base64.DEFAULT));
+                ((ImageView) _view.findViewById(R.id.img_profile)).setTag(Base64.encodeToString(_stream.toByteArray(), Base64.DEFAULT));
             }
         } catch (Exception ex) {
             ((ImageView) _view.findViewById(R.id.img_profile)).setImageResource(R.drawable.profile_error);
+            Log.e(TAG, ex.getMessage());
         }
     }
 }

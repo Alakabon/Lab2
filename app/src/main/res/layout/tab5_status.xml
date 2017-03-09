@@ -30,6 +30,7 @@
                 android:id="@+id/lbl1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:paddingLeft="@dimen/dim_start_padding"
                 android:text="@string/lbl_InternetStatus"
                 android:textStyle="bold" />
 
@@ -58,6 +59,7 @@
                 android:id="@+id/lbl2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:paddingLeft="@dimen/dim_start_padding"
                 android:text="@string/lbl_BatteryStatus"
                 android:textStyle="bold" />
 
@@ -85,6 +87,7 @@
                 android:id="@+id/lbl3"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:paddingLeft="@dimen/dim_start_padding"
                 android:text="@string/lbl_Latitude"
                 android:textStyle="bold" />
 
@@ -112,6 +115,7 @@
                 android:id="@+id/lbl4"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:paddingLeft="@dimen/dim_start_padding"
                 android:text="@string/lbl_Longitude"
                 android:textStyle="bold" />
 

@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 
 import ca.polymtl.inf8405.lab2.Entities.EventLocation;
 import ca.polymtl.inf8405.lab2.Entities.Group;
@@ -27,53 +28,52 @@ public class DatabaseManager {
     public final String groupsLabel = "groups";
     public final String subscribedUsersLabel = "subscribedUsers";
     public final String eventLocationsLabel = "eventLocations";
-    
+
     private Context _ctx;
     private Group _group;
     private User _currentUser;
-    
+
     public DatabaseManager(Context ctx, Group eventGroup, User user) {
         _ctx = ctx;
         _group = eventGroup;
         _currentUser = user;
     }
-    
-   
-    
+
+
     public void login() {
         //Get group and verify if it exists and if user is registered
-        
+
         FirebaseDatabase.getInstance().getReference().child(rootLabel).child(groupsLabel).child(_currentUser.getGroup()).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 // Group already exists, load it up for app to use
                 if (dataSnapshot.exists()) {
                     _group = dataSnapshot.getValue(Group.class);
-                    
+
                     //If user name is not organizer, add him to group if he's not in map
                     if (!_group.getOrganizer().getName().equals(_currentUser.getName())) {
                         addUserToExistingGroup();
                     }
                 }
-                
+
                 // Else, create new group and make user organizer. Also add user to users
                 else {
                     createNewGroup();
                 }
             }
-            
+
             @Override
             public void onCancelled(DatabaseError databaseError) {
                 Log.d(TAG + "/Login", _ctx.getString(R.string.err_DBM_login_failed));
             }
         });
     }
-    
+
     private void createNewGroup() {
         _group = new Group(_currentUser.getGroup(), _currentUser, new HashMap<String, User>(), new HashMap<String, EventLocation>());
         FirebaseDatabase.getInstance().getReference().child(rootLabel).child(groupsLabel).child(_currentUser.getGroup()).setValue(_group);
     }
-    
+
     private void addUserToExistingGroup() {
         // Not organiser, No list yet
         if (_group.getSubscribedUsers() == null) {
@@ -85,36 +85,45 @@ public class DatabaseManager {
             FirebaseDatabase.getInstance().getReference().child(rootLabel).child(groupsLabel).child(_currentUser.getGroup()).getRef().child(subscribedUsersLabel).setValue(_group.getSubscribedUsers());
         }
     }
-    
-    public void addEventLocation( EventLocation eventLocation){
+
+    public void addEventLocation(EventLocation eventLocation) {
         DatabaseReference groupRef = FirebaseDatabase.getInstance().getReference().child(rootLabel).child(groupsLabel).child(_currentUser.getGroup());
-        DatabaseReference ref =  groupRef.child(eventLocationsLabel);
+        DatabaseReference ref = groupRef.child(eventLocationsLabel);
         ref.child(eventLocation.getLocationName()).setValue(eventLocation);
     }
-    
+
     public void rateEventLocation(EventLocation eventLocation, String userName, float rating) {
         //Coming soon
     }
-    
+
     public void configureAppDB(boolean enableOfflineStorage) {
         FirebaseDatabase.getInstance().setPersistenceEnabled(enableOfflineStorage);
     }
 
     public boolean saveUserData(User userData) {
         try {
-            //ToDo: Save each field in the DB
+            //TODO: Save each field in the DB
             return true;
-        }
-        catch (Exception ex){
+        } catch (Exception ex) {
             return false;
         }
     }
 
     public User retriveUserData(String userName) {
         try {
-            //ToDo: Read user data from DB based on userName and return the user object
-            return new User();
-        }catch (Exception ex){
+            if (false) { //TODO: IF userName exist in the DB
+                //TODO: read data and return them as a new User object
+                User _user = new User();
+                //_user.setName(?);
+                //_user.setGroup(?);
+                //_user.setPhoto_url(?);
+                //_user.setGpsLatitude(?);
+                //_user.setGpsLongitude(?);
+                return _user;
+            } else {
+                return new User(userName, "Group".concat(String.valueOf(new Random().nextInt(90 - 10) + 10)), "", 0.0, 0.0);
+            }
+        } catch (Exception ex) {
             return new User();
         }
     }
@@ -122,31 +131,31 @@ public class DatabaseManager {
     public Group get_group() {
         return _group;
     }
-    
+
     public void set_group(Group _group) {
         this._group = _group;
     }
-    
+
     public Context get_ctx() {
         return _ctx;
     }
-    
+
     public void set_ctx(Context _ctx) {
         this._ctx = _ctx;
     }
-    
+
     public Group get_eventGroup() {
         return _group;
     }
-    
+
     public void set_eventGroup(Group _eventGroup) {
         this._group = _eventGroup;
     }
-    
+
     public User get_currentUser() {
         return _currentUser;
     }
-    
+
     public void set_currentUser(User _currentUser) {
         this._currentUser = _currentUser;
     }
