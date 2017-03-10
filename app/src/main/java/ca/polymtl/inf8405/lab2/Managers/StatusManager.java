@@ -11,7 +11,7 @@ import android.widget.TextView;
 import ca.polymtl.inf8405.lab2.R;
 
 public class StatusManager extends Fragment {
-    public static final String TAG = "StatusManager";
+    private static final String TAG = "StatusManager";
     private View _view;
     private GlobalDataManager _gdm;
 
@@ -21,7 +21,7 @@ public class StatusManager extends Fragment {
         //Inflate the Fragment's view and call findViewById() on the View to set event handler
         _gdm = (GlobalDataManager) getActivity().getApplicationContext();
         _view = inflater.inflate(R.layout.tab5_status, container, false);
-        putDataInViews();
+        setDataInEachViews();
         return _view;
     }
 
@@ -30,12 +30,12 @@ public class StatusManager extends Fragment {
     @Override
     public void setMenuVisibility(final boolean visible) {
         super.setMenuVisibility(visible);
-        if (visible) putDataInViews();
+        if (visible) setDataInEachViews();
     }
 
     //___________________________________________________________________________________________________________________________________//
     // Load data to Views of the Fragment based on latest values in GlobalDataManager
-    private void putDataInViews() {
+    private void setDataInEachViews() {
         try {
             if (_view != null && _gdm != null) {
                 ((TextView) _view.findViewById(R.id.txt1)).setText(_gdm.getOnlineStatusString());

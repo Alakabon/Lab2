@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.graphics.BitmapFactory;
 import android.net.ConnectivityManager;
 import android.support.design.widget.TabLayout;
 import android.support.design.widget.FloatingActionButton;
@@ -15,6 +16,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
+import android.util.Base64;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -50,8 +53,9 @@ public class MainActivity extends AppCompatActivity {
      * loaded fragment in memory.
      */
 
+    private static final String TAG = "MainActivity";
     private String _last_username;
-    SharedPreferences _sharedPref;
+    private SharedPreferences _sharedPref;
 
     //___________________________________________________________________________________________________________________________________//
     @Override
@@ -77,19 +81,19 @@ public class MainActivity extends AppCompatActivity {
         registerReceiver(new LowBatteryManager(this), new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
         registerReceiver(new NetworkManager(), new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
 
-        GPSManager _gps = new GPSManager(this);
         final DatabaseManager _dbManager = new DatabaseManager(this, null, null); // Params subject to change
         _dbManager.configureAppDB(true);
 
-        // Create the adapter that will return a fragment for each of primary sections of the activity.
-        Fragment[] _fgms = {new ProfileManager(), new MapsManager(), new PlaceManager(), new EventsManager(), new StatusManager()};
-        final GlobalDataManager _gdm = (GlobalDataManager) this.getApplicationContext();
         _last_username = getLastUsedUsername();
+        final GlobalDataManager _gdm = (GlobalDataManager) this.getApplicationContext();
         _gdm.setUserData(_dbManager.retriveUserData(_last_username));
+
+        // Create the adapter that will return a fragment for each of primary sections of the activity.
+        final Fragment[] _fgms = {new ProfileManager(), new MapsManager(), new PlaceManager(), new EventsManager(), new StatusManager()};
         _gdm.setTabs(_fgms, this);
 
         // The ViewPager that will host the section contents and setting up the ViewPager with the sections adapter.
-        ViewPager _vp = (ViewPager) findViewById(R.id.vpContainer);
+        final ViewPager _vp = (ViewPager) findViewById(R.id.vpContainer);
         _vp.setAdapter(new SectionsPagerAdapter(getSupportFragmentManager(), this, _fgms));
 
         TabLayout _tab = (TabLayout) findViewById(R.id.tabs);
@@ -105,26 +109,37 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 try {
-                    _gdm.getUserData().setName(((EditText) findViewById(R.id.txt_alias)).getText().toString());
-                    _gdm.getUserData().setGroup(((EditText) findViewById(R.id.txt_group)).getText().toString());
-                    _gdm.getUserData().setPhoto_url(((ImageView) findViewById(R.id.img_profile)).getTag().toString());
-                    _gdm.getUserData().setGpsLatitude(Double.valueOf(((TextView) findViewById(R.id.txt3)).getText().toString()));
-                    _gdm.getUserData().setGpsLongitude(Double.valueOf(((TextView) findViewById(R.id.txt4)).getText().toString()));
+                    switch (_vp.getCurrentItem()) {
+                        case 0: //Save profile data from the 1st Fragment (Profile Manager)
+                            _gdm.getUserData().setName(((EditText) findViewById(R.id.txt_alias)).getText().toString());
+                            _gdm.getUserData().setGroup(((EditText) findViewById(R.id.txt_group)).getText().toString());
+                            _gdm.getUserData().setPhoto_url(((ImageView) findViewById(R.id.img_profile)).getTag().toString());
+                            break;
+                        case 1: //Save map data from the 2st Fragment (Map Manager)
+                            break;
+                        case 2: //Save place data from the 3st Fragment (Place Manager)
+                            break;
+                        case 3: //Save event data from the 4st Fragment (Events Manager)
+                            break;
+                        case 4: //Save status data from the 5st Fragment (Status Manager)
+                            _gdm.getUserData().setGpsLatitude(Double.valueOf(((TextView) findViewById(R.id.txt3)).getText().toString()));
+                            _gdm.getUserData().setGpsLongitude(Double.valueOf(((TextView) findViewById(R.id.txt4)).getText().toString()));
+                            break;
+                    }
                     _dbManager.saveUserData(_gdm.getUserData());
-                    Snackbar.make(view, getString(R.string.msg_save), Snackbar.LENGTH_LONG).setAction("Action", null).show();
+                    Snackbar.make(view, getString(R.string.msg_save) + "[" + _vp.getCurrentItem() + "]", Snackbar.LENGTH_LONG).setAction("Action", null).show();
 
                     // Make user and link to DB
-                    EditText nameField = (EditText) findViewById(R.id.txt_alias);
-                    EditText groupField = (EditText) findViewById(R.id.txt_group);
-
-                    User currentUser = new User(nameField.getText().toString(), groupField.getText().toString(), "", 0, 0);
-
-                    _dbManager.set_currentUser(currentUser);
-                    _dbManager.login();
-                }catch (Exception ex){
+//                    EditText nameField = (EditText) findViewById(R.id.txt_alias);
+//                    EditText groupField = (EditText) findViewById(R.id.txt_group);
+//
+//                    User currentUser = new User(nameField.getText().toString(), groupField.getText().toString(), "", 0, 0);
+//
+//                    _dbManager.set_currentUser(currentUser);
+//                    _dbManager.login();
+                } catch (Exception ex) {
                     Snackbar.make(view, "ERROR:" + ex.getMessage(), Snackbar.LENGTH_LONG).setAction("Action", null).show();
                 }
-
             }
         });
 
@@ -142,8 +157,8 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        GPSManager _gps = new GPSManager(this);
     }
-
 
     //___________________________________________________________________________________________________________________________________//
     @Override
