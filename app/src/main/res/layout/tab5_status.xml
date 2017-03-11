@@ -77,6 +77,34 @@
             android:paddingTop="@dimen/activity_vertical_margin">
 
             <ImageView
+                android:id="@+id/img5"
+                android:layout_width="@dimen/icon_size"
+                android:layout_height="@dimen/icon_size"
+                android:contentDescription="@string/lbl_gps"
+                app:srcCompat="@drawable/on" />
+
+            <TextView
+                android:id="@+id/lbl5"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingLeft="@dimen/dim_start_padding"
+                android:text="@string/lbl_gps"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/txt5"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/dim_start_padding" />
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical"
+            android:paddingTop="@dimen/activity_vertical_margin">
+
+            <ImageView
                 android:id="@+id/img3"
                 android:layout_width="@dimen/icon_size"
                 android:layout_height="@dimen/icon_size"

@@ -1,8 +1,8 @@
 <resources>
     <string name="app_name">LAB2 - INF8405</string>
     <string name="pref_file_key">LAB1_PREF_FILE_KEY</string>
-    <string name="menu_settings">Paramètres</string>
-    <string name="menu_status">Vérification&#8230;</string>
+    <string name="menu_gps">GPS&#8230;</string>
+    <string name="menu_network">Réseau&#8230;</string>
     <string name="title_profile">Profil</string>
     <string name="title_map">Carte</string>
     <string name="title_places">Lieux</string>
@@ -14,6 +14,7 @@
     <string name="msg_save">Vos paramètres ont été enregistrés.</string>
     <string name="lbl_BatteryStatus">État de la batterie :</string>
     <string name="lbl_InternetStatus">Statut de l\'Internet :</string>
+    <string name="lbl_gps">Fournisseur d\'emplacement (GPS) :</string>
     <string name="lbl_Latitude">Latitude :</string>
     <string name="lbl_Longitude">Longitude :</string>
     <string name="rsvp_Yes">Participe</string>

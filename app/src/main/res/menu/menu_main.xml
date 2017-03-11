@@ -4,9 +4,16 @@
     tools:context="ca.polymtl.inf8405.lab2.Activities.MainActivity">
 
     <item
-        android:id="@+id/menu_status"
+        android:id="@+id/menu_gps"
         android:orderInCategory="101"
-        android:title="@string/menu_status"
+        android:title="@string/menu_gps"
+        android:icon="@drawable/on"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/menu_network"
+        android:orderInCategory="102"
+        android:title="@string/menu_network"
         android:icon="@drawable/online"
-        app:showAsAction="always" />
+        app:showAsAction="ifRoom" />
 </menu>

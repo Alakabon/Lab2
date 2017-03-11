@@ -39,9 +39,10 @@ public class StatusManager extends Fragment {
         try {
             if (_view != null && _gdm != null) {
                 ((TextView) _view.findViewById(R.id.txt1)).setText(_gdm.getOnlineStatusString());
-                ((TextView) _view.findViewById(R.id.txt2)).setText(_gdm.getBatteryStatusString());
+                ((TextView) _view.findViewById(R.id.txt2)).setText(_gdm.getBatteryLevelString());
                 ((TextView) _view.findViewById(R.id.txt3)).setText(_gdm.getGPSLatitudeString());
                 ((TextView) _view.findViewById(R.id.txt4)).setText(_gdm.getGPSLongitudeString());
+                ((TextView) _view.findViewById(R.id.txt5)).setText(_gdm.getGPSProviderStatusString());
             }
         } catch (Exception ex) {
             Log.e(TAG, ex.getMessage());

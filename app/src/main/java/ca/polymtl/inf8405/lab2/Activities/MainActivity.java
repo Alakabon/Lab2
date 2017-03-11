@@ -1,22 +1,23 @@
 package ca.polymtl.inf8405.lab2.Activities;
 
+import android.Manifest;
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.graphics.BitmapFactory;
+import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.support.design.widget.TabLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
-import android.util.Base64;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -24,6 +25,7 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.Calendar;
 import java.util.LinkedList;
@@ -34,11 +36,11 @@ import ca.polymtl.inf8405.lab2.Entities.EventLocation;
 import ca.polymtl.inf8405.lab2.Entities.User;
 import ca.polymtl.inf8405.lab2.Managers.DatabaseManager;
 import ca.polymtl.inf8405.lab2.Managers.EventsManager;
-import ca.polymtl.inf8405.lab2.Managers.GPSManager;
+import ca.polymtl.inf8405.lab2.Receivers.GPSManager;
 import ca.polymtl.inf8405.lab2.Managers.GlobalDataManager;
-import ca.polymtl.inf8405.lab2.Managers.LowBatteryManager;
+import ca.polymtl.inf8405.lab2.Receivers.LowBatteryManager;
 import ca.polymtl.inf8405.lab2.Managers.MapsManager;
-import ca.polymtl.inf8405.lab2.Managers.NetworkManager;
+import ca.polymtl.inf8405.lab2.Receivers.NetworkManager;
 import ca.polymtl.inf8405.lab2.Managers.PlaceManager;
 import ca.polymtl.inf8405.lab2.Managers.ProfileManager;
 import ca.polymtl.inf8405.lab2.Managers.SectionsPagerAdapter;
@@ -57,6 +59,7 @@ public class MainActivity extends AppCompatActivity {
     private String _last_username;
     private SharedPreferences _sharedPref;
 
+
     //___________________________________________________________________________________________________________________________________//
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,19 +70,33 @@ public class MainActivity extends AppCompatActivity {
         _sharedPref = this.getSharedPreferences("PREF_DATA", Context.MODE_PRIVATE);
         
         /* BroadcastReceiver registration section
+
            In Android these are the components that listen to broadcast events.
            Broadcast events are events that are sent with the intention of notifying multiple receivers.
            Android uses these broadcasts to inform interested components of system events, like
            application installs, mounting or removing the sd card, a low battery, the completion of the boot process and so on.
            In this section we will register two BroadcastReceiver for detecting low battery level and connectivity status changes
            First command will register battery receiver for detecting low battery level
+           There are two ways of registering broadcast receivers in Android:
+                1- In the code (our case)
+                2- In AndroidManifest.xml
            Second command will fire an event whenever connectivity status changes (We can check the device’s current connectivity status.
                                                                                    But this is only a temporary snapshot of the status.
                                                                                    It might change anytime, given the volatility of a mobile environment.
                                                                                    Thus we will register for a broadcast event.)
+
+            We will only receive broadcasts as long as context where we registered your receiver is alive.
+            So when activity or application is killed (depending where we registered your receiver) we won't receive broadcasts anymore.
          */
+
+        //
+        ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
+
+        //Register broadcast receiver for the application context
         registerReceiver(new LowBatteryManager(this), new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
         registerReceiver(new NetworkManager(), new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
+        registerReceiver(new GPSManager(this), new IntentFilter(LocationManager.PROVIDERS_CHANGED_ACTION));
+
 
         final DatabaseManager _dbManager = new DatabaseManager(this, null, null); // Params subject to change
         _dbManager.configureAppDB(true);
@@ -156,8 +173,6 @@ public class MainActivity extends AppCompatActivity {
                 _dbManager.addEventLocation(eventLocation);
             }
         });
-
-        GPSManager _gps = new GPSManager(this);
     }
 
     //___________________________________________________________________________________________________________________________________//
@@ -165,8 +180,8 @@ public class MainActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
-        NetworkManager.isOnline(this);
         ((GlobalDataManager) this.getApplicationContext()).updateOnlineStatusOnTheMainActivity(menu);
+        ((GlobalDataManager) this.getApplicationContext()).updateGPSProviderStatusOnTheMainActivity(menu);
         return true;
     }
 
@@ -176,13 +191,21 @@ public class MainActivity extends AppCompatActivity {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
+        String _status = "ERROR reading data";
+        try {
+            switch (item.getItemId()) {
+                case R.id.menu_network:
+                    _status = "Internet status : " + ((GlobalDataManager) this.getApplicationContext()).getOnlineStatusString();
+                    break;
+                case R.id.menu_gps:
+                    _status = "GPS status : " + ((GlobalDataManager) this.getApplicationContext()).getGPSProviderStatusString();
+                    break;
+            }
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.menu_status) {
-            return true;
+            Toast.makeText(this, _status, Toast.LENGTH_LONG).show();
+        } catch (Exception ex) {
+            Log.e(TAG, ex.getMessage());
         }
-
         return super.onOptionsItemSelected(item);
     }
 

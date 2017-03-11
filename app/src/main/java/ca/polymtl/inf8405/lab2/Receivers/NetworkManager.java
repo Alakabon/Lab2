@@ -1,4 +1,4 @@
-package ca.polymtl.inf8405.lab2.Managers;
+package ca.polymtl.inf8405.lab2.Receivers;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -6,8 +6,11 @@ import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 
+import ca.polymtl.inf8405.lab2.Managers.GlobalDataManager;
+
 public class NetworkManager extends BroadcastReceiver {
 
+    //___________________________________________________________________________________________________________________________________//
     //This method is called whenever the broadcast is sent.
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -16,6 +19,7 @@ public class NetworkManager extends BroadcastReceiver {
         _gdm.updateOnlineStatusOnTheMainActivity();
     }
 
+    //___________________________________________________________________________________________________________________________________//
     // This method will check connectivity in case if we need to check whether mobile is connected with the internet or not.
     public static int isOnline(Context context) {
         try {

@@ -13,8 +13,8 @@ import ca.polymtl.inf8405.lab2.R;
 
 public class GlobalDataManager extends Application {
     private int _online_status = -1;
+    private int _gps_provider_status = -1;
     private int _battery_level = -1;
-    private int _measurement_scale = -1;
     private Fragment[] _fgms;
     private Context _ctx;
     private Menu _menu;
@@ -26,17 +26,34 @@ public class GlobalDataManager extends Application {
         return _online_status;
     }
 
+    public int getGPSProviderStatus() {
+        return _gps_provider_status;
+    }
+
     public void setOnlineStatus(int status) {
         _online_status = status;
     }
 
+    public void setGPSProviderStatus(int status) {
+        _gps_provider_status = status;
+    }
+
+    public CharSequence getGPSProviderStatusString() {
+        return (_gps_provider_status == 1) ? "On" : (_gps_provider_status == 0) ? "Off" : "Error reading GPS data!";
+    }
+
     public CharSequence getOnlineStatusString() {
-        return (_online_status == 1) ? "Online" : (_online_status == 0) ? "Offline" : "Error readin status!";
+        return (_online_status == 1) ? "Online" : (_online_status == 0) ? "Offline" : "Error reading Internet status!";
     }
 
     public void updateOnlineStatusOnTheMainActivity() {
         if (_menu != null)
-            _menu.getItem(0).setIcon((_online_status == 1) ? R.drawable.online : (_online_status == 0) ? R.drawable.offline : R.drawable.error);
+            _menu.getItem(1).setIcon((_online_status == 1) ? R.drawable.online : (_online_status == 0) ? R.drawable.offline : R.drawable.error);
+    }
+
+    public void updateGPSProviderStatusOnTheMainActivity() {
+        if (_menu != null)
+            _menu.getItem(0).setIcon((_gps_provider_status == 1) ? R.drawable.on : (_gps_provider_status == 0) ? R.drawable.off : R.drawable.error);
     }
 
     public void updateOnlineStatusOnTheMainActivity(Menu menu) {
@@ -44,21 +61,26 @@ public class GlobalDataManager extends Application {
         updateOnlineStatusOnTheMainActivity();
     }
 
+    public void updateGPSProviderStatusOnTheMainActivity(Menu menu) {
+        _menu = menu;
+        updateGPSProviderStatusOnTheMainActivity();
+    }
+
     public void setTabs(Fragment[] fgms, Context ctx) {
         _fgms = fgms;
         _ctx = ctx;
     }
 
-    public CharSequence getBatteryStatusString() {
+    public CharSequence getBatteryLevelString() {
         return String.valueOf(_battery_level).concat("%");
+    }
+
+    public int getBatteryLevel() {
+        return _battery_level;
     }
 
     public void setBatteryLevel(int level) {
         _battery_level = level;
-    }
-
-    public void setMeasurementScale(int scale) {
-        _measurement_scale = scale;
     }
 
     public CharSequence getGPSLatitudeString() {
