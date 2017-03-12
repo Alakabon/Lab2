@@ -2,6 +2,8 @@ package ca.polymtl.inf8405.lab2.Managers;
 
 import android.app.Application;
 import android.content.Context;
+import android.location.Location;
+import android.location.LocationManager;
 import android.support.v4.app.Fragment;
 import android.view.Menu;
 
@@ -21,6 +23,7 @@ public class GlobalDataManager extends Application {
     private double _gps_Longitude;
     private double _gps_Latitude;
     private User _user_data;
+    private Location _location;
 
     public int getOnlineStatus() {
         return _online_status;
@@ -112,10 +115,27 @@ public class GlobalDataManager extends Application {
     }
 
     public void setUserData(User userData) {
-        _user_data = userData;
+        if (userData != null)
+            _user_data = userData;
     }
 
     public void setPhoto_URL(String photoString) {
         _user_data.setPhoto_url(photoString);
+    }
+
+    public Location getGPSLocation() {
+        return _location;
+    }
+
+    public void setGPSLocation(Location loc) {
+        if (loc != null) {
+            _location = loc;
+            _gps_Latitude = loc.getLatitude();
+            _gps_Longitude = loc.getLongitude();
+            if (_user_data != null) {
+                _user_data.setGpsLatitude(loc.getLatitude());
+                _user_data.setGpsLongitude(loc.getLongitude());
+            }
+        }
     }
 }

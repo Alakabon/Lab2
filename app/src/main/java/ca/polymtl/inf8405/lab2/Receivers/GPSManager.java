@@ -18,7 +18,8 @@ import ca.polymtl.inf8405.lab2.Managers.GlobalDataManager;
 public class GPSManager extends BroadcastReceiver {
     private static final String TAG = "GPSManager";
     private Context _ctx;
-    private Location _loc;
+    private boolean _isProviderEnabled;
+    private LocationManager _lm;
 
     //___________________________________________________________________________________________________________________________________//
     public void onReceive(Context context, Intent intent) {
@@ -26,8 +27,8 @@ public class GPSManager extends BroadcastReceiver {
     }
 
     //___________________________________________________________________________________________________________________________________//
-    private void updateGPSProviderStatus(Context ctx)
-    {
+    private void updateGPSProviderStatus(Context ctx) {
+        _isProviderEnabled = false;
         GlobalDataManager _gdm = (GlobalDataManager) ctx.getApplicationContext();
         _gdm.setGPSProviderStatus(isGPSFunctional(ctx));
         _gdm.updateGPSProviderStatusOnTheMainActivity();
@@ -35,9 +36,11 @@ public class GPSManager extends BroadcastReceiver {
 
     //___________________________________________________________________________________________________________________________________//
     // This method will check functionality of the gps provider (if it's on/off).
-    public static int isGPSFunctional(Context ctx) {
+    private int isGPSFunctional(Context ctx) {
         try {
-            return ((LocationManager) ctx.getSystemService(Context.LOCATION_SERVICE )).isProviderEnabled(LocationManager.GPS_PROVIDER) ? 1 : 0;
+            _lm = (LocationManager) ctx.getSystemService(Context.LOCATION_SERVICE);
+            _isProviderEnabled = _lm.isProviderEnabled(LocationManager.GPS_PROVIDER);
+            return _isProviderEnabled ? 1 : 0;
         } catch (Exception ex) {
             Log.e(TAG, ex.getMessage());
             return -1;
@@ -45,60 +48,51 @@ public class GPSManager extends BroadcastReceiver {
     }
 
     //___________________________________________________________________________________________________________________________________//
-    public GPSManager(Context ctx) {
-        _ctx = ctx;
+    public static void getLatestGPSLocation(Context ctx) {
         try {
-            LocationManager _lm = (LocationManager) _ctx.getSystemService(Context.LOCATION_SERVICE);
-            Criteria _crt = new Criteria();
-            _crt.setAccuracy(Criteria.ACCURACY_MEDIUM);
-            _crt.setPowerRequirement(Criteria.POWER_LOW);
-            String _pn = _lm.getBestProvider(_crt, true);
-            if (_pn != null)
-                _loc = _lm.getLastKnownLocation(_pn);
-
-            //Checking if there is still permission for accessing GPS location
-            if (_ctx.checkCallingOrSelfPermission("android.permission.ACCESS_FINE_LOCATION") == PackageManager.PERMISSION_GRANTED)
-            {
-                int _battery_level = ((GlobalDataManager) ctx.getApplicationContext()).getBatteryLevel();
-
-                //Minimum time interval between location updates, in milliseconds
-                //If in low battery mode, will change internal to 1 minutes instead of 10 second
-                int _minTime = _battery_level <= 15 ? 10000 : 60000;
-                _lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, _minTime, 0, new GPSLocationListener());
-            }
+            LocationManager _lm = (LocationManager) ctx.getSystemService(Context.LOCATION_SERVICE);
+            ((GlobalDataManager) ctx.getApplicationContext()).setGPSLocation(_lm.getLastKnownLocation(LocationManager.GPS_PROVIDER));
         } catch (SecurityException ex) {
             Log.e(TAG, ex.getMessage());
         }
-        updateGPSProviderStatus(ctx);
     }
 
     //___________________________________________________________________________________________________________________________________//
-    private class GPSLocationListener implements LocationListener {
+    public GPSManager(Context ctx) {
+        _ctx = ctx;
+        updateGPSProviderStatus(_ctx);
 
-        //_______________________________________________________________________________________________________________________________//
-        @Override
-        public void onLocationChanged(Location location) {
-            if (location != null) {
-                GlobalDataManager _gdm = (GlobalDataManager) _ctx.getApplicationContext();
-                _gdm.setGPSLatitude(location.getLatitude());
-                _gdm.setGPSLongitude(location.getLongitude());
-                _loc = location;
+        if (_isProviderEnabled) {
+            try {
+                getLatestGPSLocation(_ctx);
+                //Checking if there is still permission for accessing GPS location
+                if (_ctx.checkCallingOrSelfPermission("android.permission.ACCESS_FINE_LOCATION") == PackageManager.PERMISSION_GRANTED) {
+                    // Minimum time interval between location updates, in milliseconds
+                    // Default values will get continues location but it drown the battery
+                    // Therefore, we will check if in low battery mode and change interval to 1 minutes instead of 10 seconds
+                    int _minTime = ((GlobalDataManager) ctx.getApplicationContext()).getBatteryLevel() <= 15 ? 10 * 1000 : 60 * 1000;
+
+                    //Implementing LocationListener for concurrent location updates based in defined intervals
+                    _lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, _minTime, 100, new LocationListener() {
+
+                        @Override
+                        public void onLocationChanged(Location location) {
+                            ((GlobalDataManager) _ctx.getApplicationContext()).setGPSLocation(location);
+                        }
+
+                        public void onStatusChanged(String s, int i, Bundle bundle) {
+                        }
+
+                        public void onProviderEnabled(String s) {
+                        }
+
+                        public void onProviderDisabled(String s) {
+                        }
+                    });
+                }
+            } catch (SecurityException ex) {
+                Log.e(TAG, ex.getMessage());
             }
-        }
-
-        //_______________________________________________________________________________________________________________________________//
-        public void onStatusChanged(String s, int i, Bundle bundle) {
-
-        }
-
-        //_______________________________________________________________________________________________________________________________//
-        public void onProviderEnabled(String s) {
-
-        }
-
-        //_______________________________________________________________________________________________________________________________//
-        public void onProviderDisabled(String s) {
-
         }
     }
 }

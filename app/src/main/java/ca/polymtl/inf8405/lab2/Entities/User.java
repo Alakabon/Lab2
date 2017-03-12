@@ -10,6 +10,7 @@ public class User {
     private double gpsLatitude;
     
     public User() {
+        // Default constructor required for calls to DataSnapshot.getValue(User.class)
     }
     
     public User(String name, String group, String photo_url, double gpsLongitude, double gpsLatitude) {

@@ -1,15 +1,26 @@
 package ca.polymtl.inf8405.lab2.Managers;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.support.annotation.BoolRes;
+import android.support.annotation.NonNull;
+import android.util.Base64;
 import android.util.Log;
+import android.widget.ImageView;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.FirebaseException;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.database.DatabaseReference;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Calendar;
 import java.util.HashMap;
@@ -21,24 +32,24 @@ import ca.polymtl.inf8405.lab2.Entities.Group;
 import ca.polymtl.inf8405.lab2.Entities.User;
 import ca.polymtl.inf8405.lab2.R;
 
-
 public class DatabaseManager {
-    public static final String TAG = "DatabaseManager";
-    public final String rootLabel = "root";
-    public final String groupsLabel = "groups";
-    public final String subscribedUsersLabel = "subscribedUsers";
-    public final String eventLocationsLabel = "eventLocations";
+    private static final String TAG = "DatabaseManager";
+    private final String rootLabel = "root";
+    private final String usersLabel = "users";
+    private final String groupsLabel = "groups";
+    private final String subscribedUsersLabel = "subscribedUsers";
+    private final String eventLocationsLabel = "eventLocations";
 
     private Context _ctx;
     private Group _group;
     private User _currentUser;
+    private boolean _result = false;
 
     public DatabaseManager(Context ctx, Group eventGroup, User user) {
         _ctx = ctx;
         _group = eventGroup;
         _currentUser = user;
     }
-
 
     public void login() {
         //Get group and verify if it exists and if user is registered
@@ -100,34 +111,6 @@ public class DatabaseManager {
         FirebaseDatabase.getInstance().setPersistenceEnabled(enableOfflineStorage);
     }
 
-    public boolean saveUserData(User userData) {
-        try {
-            //TODO: Save each field in the DB
-            return true;
-        } catch (Exception ex) {
-            return false;
-        }
-    }
-
-    public User retriveUserData(String userName) {
-        try {
-            if (false) { //TODO: IF userName exist in the DB
-                //TODO: read data and return them as a new User object
-                User _user = new User();
-                //_user.setName(?);
-                //_user.setGroup(?);
-                //_user.setPhoto_url(?);
-                //_user.setGpsLatitude(?);
-                //_user.setGpsLongitude(?);
-                return _user;
-            } else {
-                return new User(userName, "Group".concat(String.valueOf(new Random().nextInt(90 - 10) + 10)), "", 0.0, 0.0);
-            }
-        } catch (Exception ex) {
-            return new User();
-        }
-    }
-
     public Group get_group() {
         return _group;
     }
@@ -158,5 +141,39 @@ public class DatabaseManager {
 
     public void set_currentUser(User _currentUser) {
         this._currentUser = _currentUser;
+    }
+
+    //___________________________________________________________________________________________________________________________________//
+    public boolean saveUserData(final User userData) {
+        _result = false;
+        try {
+            //Creating an instance of DatabaseReference for reading/writing Data from Firebase
+            final DatabaseReference _ref = FirebaseDatabase.getInstance().getReference().child(rootLabel).child(usersLabel).child(userData.getName());
+            //Attaching an asynchronous listener to reference
+            //The listener is triggered once for the initial state of the data and then does not trigger again.
+            _ref.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    //Since we are using Java object, the contents of the object are automatically mapped to child locations in a nested fashion
+                    //HashMap<String, User> _user = new HashMap<String, User>();
+                    //_user.put(userData.getName(), userData);
+                    _ref.setValue(userData).addOnCompleteListener(new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
+                            _result = task.isSuccessful();
+                        }
+                    });
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+                    Log.w(TAG, "loadData:onCancelled", databaseError.toException());
+                    _result = false;
+                }
+            });
+            return _result;
+        } catch (Exception ex) {
+            return false;
+        }
     }
 }

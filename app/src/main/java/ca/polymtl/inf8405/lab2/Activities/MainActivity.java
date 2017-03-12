@@ -7,6 +7,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.support.design.widget.TabLayout;
@@ -18,6 +20,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
+import android.util.Base64;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -27,6 +30,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.ByteArrayOutputStream;
 import java.util.Calendar;
 import java.util.LinkedList;
 import java.util.List;
@@ -56,9 +60,8 @@ public class MainActivity extends AppCompatActivity {
      */
 
     private static final String TAG = "MainActivity";
-    private String _last_username;
+    private User _localProfile;
     private SharedPreferences _sharedPref;
-
 
     //___________________________________________________________________________________________________________________________________//
     @Override
@@ -67,8 +70,12 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
         _sharedPref = this.getSharedPreferences("PREF_DATA", Context.MODE_PRIVATE);
-        
+        readSavedLocalProfile();
+        final GlobalDataManager _gdm = (GlobalDataManager) this.getApplicationContext();
+        _gdm.setUserData(_localProfile);
+
         /* BroadcastReceiver registration section
 
            In Android these are the components that listen to broadcast events.
@@ -90,20 +97,15 @@ public class MainActivity extends AppCompatActivity {
          */
 
         //
-        ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
+        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
 
         //Register broadcast receiver for the application context
         registerReceiver(new LowBatteryManager(this), new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
         registerReceiver(new NetworkManager(), new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
         registerReceiver(new GPSManager(this), new IntentFilter(LocationManager.PROVIDERS_CHANGED_ACTION));
 
-
         final DatabaseManager _dbManager = new DatabaseManager(this, null, null); // Params subject to change
         _dbManager.configureAppDB(true);
-
-        _last_username = getLastUsedUsername();
-        final GlobalDataManager _gdm = (GlobalDataManager) this.getApplicationContext();
-        _gdm.setUserData(_dbManager.retriveUserData(_last_username));
 
         // Create the adapter that will return a fragment for each of primary sections of the activity.
         final Fragment[] _fgms = {new ProfileManager(), new MapsManager(), new PlaceManager(), new EventsManager(), new StatusManager()};
@@ -144,6 +146,7 @@ public class MainActivity extends AppCompatActivity {
                             break;
                     }
                     _dbManager.saveUserData(_gdm.getUserData());
+                    applySavedLocalProfile();
                     Snackbar.make(view, getString(R.string.msg_save) + "[" + _vp.getCurrentItem() + "]", Snackbar.LENGTH_LONG).setAction("Action", null).show();
 
                     // Make user and link to DB
@@ -231,12 +234,37 @@ public class MainActivity extends AppCompatActivity {
     }
 
     //___________________________________________________________________________________________________________________________________//
+    private void readSavedLocalProfile() {
+        _localProfile = new User();
+        _localProfile.setName(getLastUsedUsername());
+        String _last_group = _sharedPref.getString(getString(R.string.name_group), "");
+        _localProfile.setGroup(_last_group.isEmpty() ? "Group".concat(String.valueOf(new Random().nextInt(90 - 10) + 10)) : _last_group);
+        _localProfile.setGpsLatitude(_sharedPref.getFloat(getString(R.string.lbl_Latitude), 0));
+        _localProfile.setGpsLongitude(_sharedPref.getFloat(getString(R.string.lbl_Longitude), 0));
+        ByteArrayOutputStream _stream = new ByteArrayOutputStream();
+        Bitmap _photo = BitmapFactory.decodeResource(getResources(), R.drawable.profile);
+        _photo.compress(Bitmap.CompressFormat.PNG, 100, _stream);
+        _localProfile.setPhoto_url(_sharedPref.getString(getString(R.string.camera), Base64.encodeToString(_stream.toByteArray(), Base64.DEFAULT)));
+    }
+
+    //___________________________________________________________________________________________________________________________________//
+    private void applySavedLocalProfile() {
+        GlobalDataManager _gdm = (GlobalDataManager) this.getApplicationContext();
+        User _currentProfile = _gdm.getUserData();
+        SharedPreferences.Editor _editor = _sharedPref.edit();
+        _editor.putString(getString(R.string.name_alias), _currentProfile.getName());
+        _editor.putString(getString(R.string.name_group), _currentProfile.getGroup());
+        _editor.putFloat(getString(R.string.lbl_Latitude), Float.valueOf(String.valueOf(_currentProfile.getGpsLatitude())));
+        _editor.putFloat(getString(R.string.lbl_Longitude), Float.valueOf(String.valueOf(_currentProfile.getGpsLongitude())));
+        _editor.putString(getString(R.string.camera), _currentProfile.getPhoto_url());
+        _editor.apply();
+    }
+
+    //___________________________________________________________________________________________________________________________________//
     // Using SharedPreferences to store preferences of the application when application is closing
     @Override
     public void onStop() {
         super.onStop();
-        SharedPreferences.Editor _editor = _sharedPref.edit();
-        _editor.putString(getString(R.string.name_alias), _last_username);
-        _editor.apply();
+        applySavedLocalProfile();
     }
 }
