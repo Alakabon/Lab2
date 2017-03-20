@@ -9,6 +9,7 @@ import java.io.ByteArrayOutputStream;
 /**
  * Utility class used to encode and decode images from the camera to something that can be saved to
  * firebase, in this case base64!
+ *
  * */
 
 public final class ImageManager {
