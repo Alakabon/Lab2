@@ -52,13 +52,6 @@ import ca.polymtl.inf8405.lab2.Managers.StatusManager;
 import ca.polymtl.inf8405.lab2.R;
 
 public class MainActivity extends AppCompatActivity {
-    /**
-     * The android.support.v4.view.PagerAdapter that will provide
-     * fragments for each of the sections. We use a
-     * FragmentPagerAdapter derivative, which will keep every
-     * loaded fragment in memory.
-     */
-
     private static final String TAG = "MainActivity";
     private User _localProfile;
     private SharedPreferences _sharedPref;
@@ -76,27 +69,6 @@ public class MainActivity extends AppCompatActivity {
         final GlobalDataManager _gdm = (GlobalDataManager) this.getApplicationContext();
         _gdm.setUserData(_localProfile);
 
-        /* BroadcastReceiver registration section
-
-           In Android these are the components that listen to broadcast events.
-           Broadcast events are events that are sent with the intention of notifying multiple receivers.
-           Android uses these broadcasts to inform interested components of system events, like
-           application installs, mounting or removing the sd card, a low battery, the completion of the boot process and so on.
-           In this section we will register two BroadcastReceiver for detecting low battery level and connectivity status changes
-           First command will register battery receiver for detecting low battery level
-           There are two ways of registering broadcast receivers in Android:
-                1- In the code (our case)
-                2- In AndroidManifest.xml
-           Second command will fire an event whenever connectivity status changes (We can check the device’s current connectivity status.
-                                                                                   But this is only a temporary snapshot of the status.
-                                                                                   It might change anytime, given the volatility of a mobile environment.
-                                                                                   Thus we will register for a broadcast event.)
-
-            We will only receive broadcasts as long as context where we registered your receiver is alive.
-            So when activity or application is killed (depending where we registered your receiver) we won't receive broadcasts anymore.
-         */
-
-        //
         ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
 
         //Register broadcast receiver for the application context
