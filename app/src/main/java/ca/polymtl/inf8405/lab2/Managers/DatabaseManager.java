@@ -1,148 +1,198 @@
 package ca.polymtl.inf8405.lab2.Managers;
 
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.support.annotation.BoolRes;
+import android.location.Location;
 import android.support.annotation.NonNull;
-import android.util.Base64;
 import android.util.Log;
-import android.widget.ImageView;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
-import com.google.firebase.FirebaseException;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
-import com.google.firebase.database.DatabaseReference;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.util.Calendar;
 import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
 
 import ca.polymtl.inf8405.lab2.Entities.EventLocation;
 import ca.polymtl.inf8405.lab2.Entities.Group;
 import ca.polymtl.inf8405.lab2.Entities.User;
 import ca.polymtl.inf8405.lab2.R;
+import ca.polymtl.inf8405.lab2.Receivers.GPSManager;
 
 public class DatabaseManager {
     private static final String TAG = "DatabaseManager";
+    
+    //Labels
+    public final String ratingsLabel = "ratings";
+    public final String rsvpLabel = "rsvp";
     private final String rootLabel = "root";
     private final String usersLabel = "users";
     private final String groupsLabel = "groups";
     private final String subscribedUsersLabel = "subscribedUsers";
     private final String eventLocationsLabel = "eventLocations";
-
+    private final String organizerLabel = "organizer";
+    private final String gpsLatiduteLabel = "gpsLatitude";
+    private final String gpsLongitudeLabel = "gpsLongitude";
+    
     private Context _ctx;
-    private Group _group;
-    private User _currentUser;
+    private boolean _isLoggedIn = false;
     private boolean _result = false;
-
-    public DatabaseManager(Context ctx, Group eventGroup, User user) {
+    
+    public DatabaseManager(Context ctx) {
         _ctx = ctx;
-        _group = eventGroup;
-        _currentUser = user;
     }
-
+    
+    public boolean get_isLoggedIn() {
+        return _isLoggedIn;
+    }
+    
+    public void set_isLoggedIn(boolean _isLoggedIn) {
+        this._isLoggedIn = _isLoggedIn;
+    }
+    
     public void login() {
+        
         //Get group and verify if it exists and if user is registered
-
-        FirebaseDatabase.getInstance().getReference().child(rootLabel).child(groupsLabel).child(_currentUser.getGroup()).addValueEventListener(new ValueEventListener() {
+        final String userGroup = ((GlobalDataManager) _ctx.getApplicationContext()).getUserData().getGroup();
+        final String userName = ((GlobalDataManager) _ctx.getApplicationContext()).getUserData().getName();
+        
+        FirebaseDatabase.getInstance().getReference().child(rootLabel).child(groupsLabel).child(userGroup).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 // Group already exists, load it up for app to use
                 if (dataSnapshot.exists()) {
-                    _group = dataSnapshot.getValue(Group.class);
-
+                    Group _group = dataSnapshot.getValue(Group.class);
+                    ((GlobalDataManager) _ctx.getApplicationContext()).set_group_data(_group);
+                    //Initial GPS update
+                    GPSManager.getLatestGPSLocation(_ctx);
+                    Location loc = ((GlobalDataManager) _ctx.getApplicationContext()).getGPSLocation();
+                    updateUserLocation(loc.getLongitude(), loc.getLatitude());
+                    
                     //If user name is not organizer, add him to group if he's not in map
-                    if (!_group.getOrganizer().getName().equals(_currentUser.getName())) {
+                    if (!_group.getOrganizer().getName().equals(userName)) {
                         addUserToExistingGroup();
                     }
+                    _isLoggedIn = true;
                 }
-
-                // Else, create new group and make user organizer. Also add user to users
+                
+                // Group does not exist, create new group and make user organizer.
                 else {
                     createNewGroup();
+                    _isLoggedIn = true;
                 }
             }
-
+            
             @Override
             public void onCancelled(DatabaseError databaseError) {
-                Log.d(TAG + "/Login", _ctx.getString(R.string.err_DBM_login_failed));
+                Log.v(TAG, "Login", databaseError.toException());
             }
         });
     }
-
+    
+    public void syncGroupData() {
+        //Get group and verify if it exists and if user is registered
+        final String userGroup = ((GlobalDataManager) _ctx.getApplicationContext()).getUserData().getGroup();
+        final String userName = ((GlobalDataManager) _ctx.getApplicationContext()).getUserData().getName();
+        
+        FirebaseDatabase.getInstance().getReference().child(rootLabel).child(groupsLabel).child(userGroup).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                // Group already exists, load it up for app to use
+                if (dataSnapshot.exists()) {
+                    Group _group = dataSnapshot.getValue(Group.class);
+                    ((GlobalDataManager) _ctx.getApplicationContext()).set_group_data(_group);
+                }
+            }
+            
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.v(TAG, "Sync", databaseError.toException());
+            }
+        });
+    }
+    
     private void createNewGroup() {
-        _group = new Group(_currentUser.getGroup(), _currentUser, new HashMap<String, User>(), new HashMap<String, EventLocation>());
-        FirebaseDatabase.getInstance().getReference().child(rootLabel).child(groupsLabel).child(_currentUser.getGroup()).setValue(_group);
+        final User user = ((GlobalDataManager) _ctx.getApplicationContext()).getUserData();
+        Group group = new Group(user.getGroup(), user, new HashMap<String, User>(), new HashMap<String, EventLocation>());
+        FirebaseDatabase.getInstance().getReference().child(rootLabel).child(groupsLabel).child(user.getGroup()).setValue(group);
     }
-
+    
     private void addUserToExistingGroup() {
+        final Group group = ((GlobalDataManager) _ctx.getApplicationContext()).get_group_data();
+        final User currentUser = ((GlobalDataManager) _ctx.getApplicationContext()).getUserData();
+        
         // Not organiser, No list yet
-        if (_group.getSubscribedUsers() == null) {
+        if (group.getSubscribedUsers() == null) {
             HashMap<String, User> newSubscriberMap = new HashMap<>();
-            _group.setSubscribedUsers(newSubscriberMap);
+            group.setSubscribedUsers(newSubscriberMap);
         }
-        if (_group.getSubscribedUsers().get(_currentUser.getName()) == null) {
-            _group.getSubscribedUsers().put(_currentUser.getName(), _currentUser);
-            FirebaseDatabase.getInstance().getReference().child(rootLabel).child(groupsLabel).child(_currentUser.getGroup()).getRef().child(subscribedUsersLabel).setValue(_group.getSubscribedUsers());
+        // Not organiser, Not found in subscribed users
+        if (group.getSubscribedUsers().get(currentUser.getName()) == null) {
+            group.getSubscribedUsers().put(currentUser.getName(), currentUser);
+            FirebaseDatabase.getInstance().getReference().child(rootLabel).child(groupsLabel).child(currentUser.getGroup()).getRef().child(subscribedUsersLabel).setValue(group.getSubscribedUsers());
         }
     }
-
+    
     public void addEventLocation(EventLocation eventLocation) {
-        DatabaseReference groupRef = FirebaseDatabase.getInstance().getReference().child(rootLabel).child(groupsLabel).child(_currentUser.getGroup());
+        
+        final User currentUser = ((GlobalDataManager) _ctx.getApplicationContext()).getUserData();
+        
+        DatabaseReference groupRef = FirebaseDatabase.getInstance().getReference().child(rootLabel).child(groupsLabel).child(currentUser.getGroup());
         DatabaseReference ref = groupRef.child(eventLocationsLabel);
         ref.child(eventLocation.getLocationName()).setValue(eventLocation);
+        
+        // Testing only, remove soon
+        rateEventLocation(eventLocation, 4);
+        setRSVP(eventLocation, _ctx.getString(R.string.rsvp_Yes));
     }
-
-    public void rateEventLocation(EventLocation eventLocation, String userName, float rating) {
-        //Coming soon
+    
+    public void rateEventLocation(EventLocation eventLocation, float rating) {
+        
+        final Group group = ((GlobalDataManager) _ctx.getApplicationContext()).get_group_data();
+        final User currentUser = ((GlobalDataManager) _ctx.getApplicationContext()).getUserData();
+        
+        DatabaseReference specificEvent = FirebaseDatabase.getInstance().getReference().child(rootLabel).child(groupsLabel).child(group.getName()).child(eventLocationsLabel).child(eventLocation.getLocationName());
+        specificEvent.child(ratingsLabel).child(currentUser.getName()).setValue(rating);
+        
     }
-
+    
+    public void setRSVP(EventLocation eventLocation, String rsvp) {
+        
+        final User currentUser = ((GlobalDataManager) _ctx.getApplicationContext()).getUserData();
+        DatabaseReference specificEvent = getSpecificEventRef(eventLocation.getLocationName());
+        
+        specificEvent.child(rsvpLabel).child(currentUser.getName()).setValue(rsvp);
+    }
+    
+    public void updateUserLocation(double longitude, double latitude) {
+        
+        final Group group = ((GlobalDataManager) _ctx.getApplicationContext()).get_group_data();
+        final User currentUser = ((GlobalDataManager) _ctx.getApplicationContext()).getUserData();
+        
+        DatabaseReference userRef = getCurrentUserRef();
+        
+        if (userRef != null) {
+            userRef.child(gpsLatiduteLabel).setValue(latitude);
+            userRef.child(gpsLongitudeLabel).setValue(longitude);
+        }
+    }
+    
     public void configureAppDB(boolean enableOfflineStorage) {
         FirebaseDatabase.getInstance().setPersistenceEnabled(enableOfflineStorage);
     }
-
-    public Group get_group() {
-        return _group;
-    }
-
-    public void set_group(Group _group) {
-        this._group = _group;
-    }
-
+    
+    
     public Context get_ctx() {
         return _ctx;
     }
-
+    
     public void set_ctx(Context _ctx) {
         this._ctx = _ctx;
     }
-
-    public Group get_eventGroup() {
-        return _group;
-    }
-
-    public void set_eventGroup(Group _eventGroup) {
-        this._group = _eventGroup;
-    }
-
-    public User get_currentUser() {
-        return _currentUser;
-    }
-
-    public void set_currentUser(User _currentUser) {
-        this._currentUser = _currentUser;
-    }
-
+    
+    
     //___________________________________________________________________________________________________________________________________//
     public boolean saveUserData(final User userData) {
         _result = false;
@@ -164,7 +214,7 @@ public class DatabaseManager {
                         }
                     });
                 }
-
+                
                 @Override
                 public void onCancelled(DatabaseError databaseError) {
                     Log.w(TAG, "loadData:onCancelled", databaseError.toException());
@@ -175,5 +225,46 @@ public class DatabaseManager {
         } catch (Exception ex) {
             return false;
         }
+    }
+    
+    private DatabaseReference getCurrentUserRef() {
+        final Group group = ((GlobalDataManager) _ctx.getApplicationContext()).get_group_data();
+        final User currentUser = ((GlobalDataManager) _ctx.getApplicationContext()).getUserData();
+        
+        try {
+            DatabaseReference specificGroup = FirebaseDatabase.getInstance().getReference().child(rootLabel).child(groupsLabel).child(currentUser.getGroup());
+            
+            // Make sure specificGroup is a valid ref
+            if (specificGroup != null) {
+                // Find user  locations ref, depending on organizer or regular user
+                if (group.getOrganizer().getName().equals(currentUser.getName())) {
+                    return specificGroup.child(organizerLabel);
+                } else {
+                    return specificGroup.child(subscribedUsersLabel).child(currentUser.getName());
+                }
+            }
+        } catch (Exception e) {
+            Log.v(TAG, "Could not locate current user");
+            e.printStackTrace();
+        }
+        return null;
+    }
+    
+    private DatabaseReference getSpecificEventRef(String eventLocationName) {
+        final Group group = ((GlobalDataManager) _ctx.getApplicationContext()).get_group_data();
+        final User currentUser = ((GlobalDataManager) _ctx.getApplicationContext()).getUserData();
+        
+        try {
+            DatabaseReference specificGroup = FirebaseDatabase.getInstance().getReference().child(rootLabel).child(groupsLabel).child(currentUser.getGroup());
+            // Make sure specificGroup is a valid ref
+            if (specificGroup != null) {
+                return specificGroup.child(eventLocationsLabel).child(eventLocationName);
+            }
+            
+        } catch (Exception e) {
+            Log.v(TAG, "Could not find event location " + eventLocationName);
+            e.printStackTrace();
+        }
+        return null;
     }
 }

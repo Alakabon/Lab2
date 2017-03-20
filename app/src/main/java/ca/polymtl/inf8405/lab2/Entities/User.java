@@ -1,6 +1,8 @@
 package ca.polymtl.inf8405.lab2.Entities;
 
-import android.location.Location;
+import android.graphics.Bitmap;
+
+import ca.polymtl.inf8405.lab2.Managers.ImageManager;
 
 public class User {
     private String name;
@@ -39,6 +41,14 @@ public class User {
     
     public String getPhoto_url() {
         return photo_url;
+    }
+    
+    public void setPhotoURLFromBitmap(Bitmap bitmap) {
+        this.photo_url = ImageManager.encodeImageToString(bitmap);
+    }
+    
+    public Bitmap getPhoto_Bitmap() {
+        return ImageManager.decodeImageFromString(this.photo_url);
     }
     
     public void setPhoto_url(String photo_url) {
