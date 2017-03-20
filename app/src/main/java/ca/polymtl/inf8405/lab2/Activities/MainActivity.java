@@ -54,6 +54,7 @@ import ca.polymtl.inf8405.lab2.Receivers.LowBatteryManager;
 import ca.polymtl.inf8405.lab2.Receivers.NetworkManager;
 
 public class MainActivity extends AppCompatActivity {
+
     /**
      * The android.support.v4.view.PagerAdapter that will provide
      * fragments for each of the sections. We use a
@@ -77,7 +78,7 @@ public class MainActivity extends AppCompatActivity {
         readSavedLocalProfile();
         final GlobalDataManager _gdm = (GlobalDataManager) this.getApplicationContext();
         _gdm.setUserData(_localProfile);
-
+        
         /* BroadcastReceiver registration section
 
            In Android these are the components that listen to broadcast events.
