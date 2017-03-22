@@ -2,6 +2,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="ca.polymtl.inf8405.lab2">
 
+    <permission
+        android:name="ca.polymtl.inf8405.lab2.MAPS_RECEIVE"
+        android:protectionLevel="signature" />
+    <uses-permission android:name="ca.polymtl.inf8405.lab2.MAPS_RECEIVE"/>
     <uses-feature android:name="android.hardware.location.gps" />
 
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -31,6 +35,9 @@
             </intent-filter>
 
         </activity>
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyBo0gnuqIEbMEiQogFGL4c1IXWvN-b2NwU" />
     </application>
 
 </manifest>

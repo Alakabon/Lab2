@@ -17,6 +17,7 @@ public class EventLocation {
     private double gpsLatitude;
     private HashMap<String, Float> ratings;       // (UserName, Rating)
     private String photo_url;
+    // This boolean indicates if the place has been chosen and is waiting on members' attendance
     private boolean chosen;
     private Date startTime;
     private Date endTime;
@@ -25,6 +26,20 @@ public class EventLocation {
     
     public EventLocation() {
         
+    }
+
+    public EventLocation(String groupName, String locationName, double gpsLongitude, double gpsLatitude, String photo_url) {
+        this.groupName = groupName;
+        this.locationName = locationName;
+        this.gpsLongitude = gpsLongitude;
+        this.gpsLatitude = gpsLatitude;
+        this.information = "";
+        this.photo_url = photo_url;
+        this.chosen = false;
+        this.rsvp = new HashMap<>();
+        this.ratings = new HashMap<>();
+        this.startTime = new Date();
+        this.endTime= new Date();
     }
     
     public EventLocation(String groupName, String locationName, double gpsLongitude, double gpsLatitude, HashMap<String, Float> ratings, String photo_url, boolean chosen, Date startTime, Date endTime, String information, HashMap<String, String> rsvp) {

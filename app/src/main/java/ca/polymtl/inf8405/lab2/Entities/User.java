@@ -10,6 +10,7 @@ public class User {
     private String photo_url;
     private double gpsLongitude;
     private double gpsLatitude;
+    //private boolean hasVoted;
     
     public User() {
         // Default constructor required for calls to DataSnapshot.getValue(User.class)
@@ -21,8 +22,17 @@ public class User {
         this.photo_url = photo_url;
         this.gpsLongitude = gpsLongitude;
         this.gpsLatitude = gpsLatitude;
+        //this.hasVoted = hasVoted;
     }
-    
+
+   /* public boolean hasVoted() {
+        return hasVoted;
+    }
+
+    public void setHasVoted(boolean voted) {
+        this.hasVoted = voted;
+    }*/
+
     public double getGpsLongitude() {
         return gpsLongitude;
     }

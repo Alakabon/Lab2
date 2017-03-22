@@ -14,7 +14,9 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.HashMap;
+import java.util.ArrayList;
 
+import ca.polymtl.inf8405.lab2.Activities.MainActivity;
 import ca.polymtl.inf8405.lab2.Entities.EventLocation;
 import ca.polymtl.inf8405.lab2.Entities.Group;
 import ca.polymtl.inf8405.lab2.Entities.User;
@@ -102,7 +104,7 @@ public class DatabaseManager {
                 // Group already exists, load it up for app to use
                 if (dataSnapshot.exists()) {
                     Group _group = dataSnapshot.getValue(Group.class);
-                    ((GlobalDataManager) _ctx.getApplicationContext()).set_group_data(_group);
+                   ((GlobalDataManager) _ctx.getApplicationContext()).set_group_data(_group);
                 }
             }
             
@@ -115,7 +117,7 @@ public class DatabaseManager {
     
     private void createNewGroup() {
         final User user = ((GlobalDataManager) _ctx.getApplicationContext()).getUserData();
-        Group group = new Group(user.getGroup(), user, new HashMap<String, User>(), new HashMap<String, EventLocation>());
+        Group group = new Group(user.getGroup(), user, new HashMap<String, User>(), new HashMap<String, EventLocation>(), false, false);
         FirebaseDatabase.getInstance().getReference().child(rootLabel).child(groupsLabel).child(user.getGroup()).setValue(group);
     }
     
@@ -143,7 +145,7 @@ public class DatabaseManager {
         DatabaseReference ref = groupRef.child(eventLocationsLabel);
         ref.child(eventLocation.getLocationName()).setValue(eventLocation);
         
-        // Testing only, remove soon
+        // TODO Testing only, remove soon
         rateEventLocation(eventLocation, 4);
         setRSVP(eventLocation, _ctx.getString(R.string.rsvp_Yes));
     }
