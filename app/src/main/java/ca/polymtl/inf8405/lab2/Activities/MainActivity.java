@@ -63,7 +63,7 @@ public class MainActivity extends AppCompatActivity {
     private User _localProfile;
     private SharedPreferences _sharedPref;
     private DatabaseManager _dbManager;
-    private MapsManager _mapsManager;
+    //private MapsManager _mapsManager;
     
     //___________________________________________________________________________________________________________________________________//
     @Override
@@ -113,7 +113,7 @@ public class MainActivity extends AppCompatActivity {
         
         // Create the adapter that will return a fragment for each of primary sections of the activity.
         final Fragment[] _fgms = {new ProfileManager(), new MapsManager(), new PlaceManager(), new EventsManager(), new StatusManager()};
-        _mapsManager = (MapsManager) _fgms[1];
+        //_mapsManager = (MapsManager) _fgms[1];
         _gdm.setTabs(_fgms, this);
         
         // The ViewPager that will host the section contents and setting up the ViewPager with the sections adapter.
@@ -147,8 +147,6 @@ public class MainActivity extends AppCompatActivity {
                         _dbManager.login();
                     }
                     _dbManager.syncGroupData();
-                    
-                    _mapsManager.updateMarkers();
                     applySavedLocalProfile();
                     Snackbar.make(view, getString(R.string.msg_save) + "[" + _vp.getCurrentItem() + "]", Snackbar.LENGTH_LONG).setAction("Action", null).show();
 
@@ -242,9 +240,9 @@ public class MainActivity extends AppCompatActivity {
         return _dbManager;
     }
     
-    public MapsManager getMapsManager() {
+    /*public MapsManager getMapsManager() {
         return _mapsManager;
-    }
+    }*/
     
     //___________________________________________________________________________________________________________________________________//
     private void readSavedLocalProfile() {

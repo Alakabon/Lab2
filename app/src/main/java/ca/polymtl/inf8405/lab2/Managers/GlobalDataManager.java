@@ -83,6 +83,8 @@ public class GlobalDataManager extends Application {
     public CharSequence getBatteryLevelString() {
         return String.valueOf(_battery_level).concat("%");
     }
+
+    public MapsManager getMapsManager() {return (MapsManager) _fgms[1] ;}
     
     public int getBatteryLevel() {
         return _battery_level;

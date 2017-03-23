@@ -3,6 +3,7 @@ package ca.polymtl.inf8405.lab2.Managers;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.support.annotation.Nullable;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.view.LayoutInflater;
@@ -12,6 +13,8 @@ import android.view.WindowManager;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.Button;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 
@@ -30,33 +33,39 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import ca.polymtl.inf8405.lab2.R;
 import ca.polymtl.inf8405.lab2.Activities.MainActivity;
 import ca.polymtl.inf8405.lab2.Entities.EventLocation;
+import ca.polymtl.inf8405.lab2.Entities.User;
 
 public class MapsManager extends Fragment implements
         OnMapReadyCallback,
-        OnInfoWindowClickListener {
+        OnInfoWindowClickListener
+{
     View _view;
     private GoogleMap _map;
-    private ArrayList<Marker> _markerArray = new ArrayList<Marker>();
-    private ArrayList<Marker> _confirmedLocationMarkersArray = new ArrayList<Marker>();
+    private ArrayList<Marker> _markerArray = new ArrayList();
+    private ArrayList<Marker> _confirmedLocationMarkersArray = new ArrayList();
+    private HashMap<String, Integer> _confirmedVotes = new HashMap();
     private GlobalDataManager gdm;
 
     @Nullable
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
+    {
         //Inflate the Fragment's view and call findViewById() on the View to set event handler
         _view = inflater.inflate(R.layout.tab2_map, container, false);
         return _view;
     }
 
     @Override
-    public void onActivityCreated(Bundle savedInstanceState) {
+    public void onActivityCreated(Bundle savedInstanceState)
+    {
         super.onActivityCreated(savedInstanceState);
         // Get the SupportMapFragment and request notification
         // when the map is ready to be used.
         gdm = (GlobalDataManager) this.getActivity().getApplicationContext();
         FragmentManager fm = getChildFragmentManager();
         SupportMapFragment mapFragment = (SupportMapFragment) fm.findFragmentById(R.id.map);
-        if (mapFragment == null) {
+        if (mapFragment == null)
+        {
             mapFragment = SupportMapFragment.newInstance();
             fm.beginTransaction().replace(R.id.map, mapFragment).commit();
         }
@@ -64,14 +73,14 @@ public class MapsManager extends Fragment implements
     }
 
     @Override
-    public void onMapReady(final GoogleMap googleMap) {
+    public void onMapReady(final GoogleMap googleMap)
+    {
         _map = googleMap;
         _map.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
 
             @Override
             public void onMapLongClick(LatLng point) {
-                // TODO check if the user is the organizer and the EventLocation state (isVoting, chosen)
-                addPlaceMarker(_map, point.latitude, point.longitude, "Nom", "Photo");
+                    addPlaceMarker(_map, point.latitude, point.longitude, "Nom", "Photo");
             }
         });
         _map.setOnInfoWindowClickListener(this);
@@ -85,10 +94,13 @@ public class MapsManager extends Fragment implements
     }
 
     @Override
-    public void onInfoWindowClick(final Marker marker) {
-        // TODO - modifify information windows based on EventLocation state (basic state = infos, isVoting = infos + vote input, chosen - infos + attendance input)
-        // Allow the organizer to edit the infos only if the place hasnt been confirmed yet
-        if (!_confirmedLocationMarkersArray.contains(marker)) {
+    public void onInfoWindowClick(final Marker marker)
+    {
+        // TODO - make sure you cant edit the info windows of people markers
+        // TODO - make sure the location names are not the same
+        // Allow the organizer to edit the infos only if the 3 locations havent been sent yet
+        if (!_confirmedLocationMarkersArray.contains(marker))
+        {
             // Display a dialog so the organizer can edit place infos
             final Dialog dialog = new Dialog(getActivity());
 
@@ -97,11 +109,10 @@ public class MapsManager extends Fragment implements
 
             final EditText editText = (EditText) dialog.findViewById(R.id.editName);
             Button btnSave = (Button) dialog.findViewById(R.id.save);
-            btnSave.setOnClickListener(new OnClickListener() {
-
-                public void onClick(View v) {
-                    // TODO update the marker without having to reclick on it
-                    // TODO change the marker icon to show it's been validated
+            btnSave.setOnClickListener(new OnClickListener()
+            {
+                public void onClick(View v)
+                {
                     // TODO add picture support
                     marker.setTitle(editText.getText().toString());
                     _confirmedLocationMarkersArray.add(marker);
@@ -113,9 +124,10 @@ public class MapsManager extends Fragment implements
                 }
             });
             Button btnCancel = (Button) dialog.findViewById(R.id.cancel);
-            btnCancel.setOnClickListener(new OnClickListener() {
-
-                public void onClick(View v) {
+            btnCancel.setOnClickListener(new OnClickListener()
+            {
+                public void onClick(View v)
+                {
                     dialog.dismiss();
                 }
             });
@@ -123,34 +135,211 @@ public class MapsManager extends Fragment implements
         }
     }
 
-    public void updateMarkers() {
-        // TODO - modifify markers based on EventLocation state (basic state, isVoting, chosen)
-        /*if (gdm.get_group_data().isVoting())
+    public void updatePlacesMarkers()
+    {
+        // TODO - add the locations informations + votes results/attendance on markers and have the titles keep the location name
+        updateInfoWindowClickListener();
+        if (gdm.get_group_data() != null)
         {
-            if (!gdm.get_group_data().getEventLocations().containsKey(gdm.getUserData().getName()))
+            if (gdm.get_group_data().getVoting() && gdm.get_group_data().getVoteStarted())
             {
-                for (EventLocation event : gdm.get_group_data().getEventLocations().values()) {
-                addPlaceMarker(_map, event.getGpsLatitude(), event.getGpsLongitude(), event.getLocationName(), "Veuillez voter pour ce lieu");
+                for (EventLocation event : gdm.get_group_data().getEventLocations().values())
+                {
+                    if (event.getRatings().containsKey(gdm.getUserData().getName()))
+                    {
+                        addPlaceMarker(_map, event.getGpsLatitude(), event.getGpsLongitude(), event.getLocationName(), Float.toString(event.calculateAverageRating()));
+                    }
+                    else
+                    {
+                        addPlaceMarker(_map, event.getGpsLatitude(), event.getGpsLongitude(), event.getLocationName(), "Veuillez voter pour ce lieu");
+                    }
                 }
             }
+            // TODO - redesign the markers infos displaying
             else
             {
-
+                // TODO - new marker icon to make sure the location is highlighted
+                for (EventLocation event : gdm.get_group_data().getEventLocations().values())
+                {
+                    if (event.getRsvp().containsKey(gdm.getUserData().getName()))
+                    {
+                        // TODO - format the rsvp data structure so that it fits in a single Information window
+                        addPlaceMarker(_map, event.getGpsLatitude(), event.getGpsLongitude(), event.getLocationName(), "");
+                    }
+                    else
+                    {
+                        addPlaceMarker(_map, event.getGpsLatitude(), event.getGpsLongitude(), event.getLocationName(), "Selectionner un lieu final");
+                    }
+                }
             }
         }
-        else if (gdm.get_group_data().isVotingFinished())
-        {
-            /*for (EventLocation event : gdm.get_group_data().getEventLocations().values()) {
-            addPlaceMarker(_map, event.getGpsLatitude(), event.getGpsLongitude(), event.getLocationName(), event.calculateAverageRating());
-            }*/
-        //}
-        //else
-        //{
+    }
 
-        //}
-        /*for (User user : gdm.get_group_data().getSubscribedUsers().values()) {
-            addPersonMarker(_map, user.getGpsLatitude(), user.getGpsLongitude(), user.getName());
-        }*/
+    private void updateInfoWindowClickListener()
+    {
+        if (gdm.get_group_data() != null)
+        {
+            // Votes are starting
+            if (gdm.get_group_data().getVoting() && gdm.get_group_data().getVoteStarted())
+            {
+                _map.setOnInfoWindowClickListener(new OnInfoWindowClickListener()
+                {
+                    public void onInfoWindowClick(final Marker marker)
+                    {
+                        // Display a dialog so the organizer can edit place infos
+                        final Dialog dialog = new Dialog(getActivity());
+
+                        dialog.setContentView(R.layout.place_vote_dialog_window);
+                        dialog.setTitle("Entrer votre vote");
+
+                        List<String> stringList = new ArrayList<>();  // here is list
+                        for(int i=0;i<5;i++)
+                        {
+                            stringList.add("Vote " + (i + 1));
+                        }
+
+                        final RadioGroup rg = (RadioGroup) dialog.findViewById(R.id.radio_vote);
+
+                        for(int i=0;i<stringList.size();i++)
+                        {
+                            // dynamically creating RadioButton and adding to RadioGroup.
+                            RadioButton rb = new RadioButton(getActivity());
+                            rb.setText(stringList.get(i));
+                            rg.addView(rb);
+                        }
+                        Button btnSave = (Button) dialog.findViewById(R.id.save);
+                        btnSave.setOnClickListener(new OnClickListener()
+                        {
+                            public void onClick(View v)
+                            {
+                                int selectedId = rg.getCheckedRadioButtonId();
+                                selectedId++;
+                                // get selected radio button from radioGroup
+                                // TODO - make sure the selectedID goes from 1 to 5
+                                _confirmedVotes.put(marker.getTitle().toString(),  selectedId);
+                                marker.setSnippet(marker.getSnippet() + "/n Votre vote:" + (Integer.toString(selectedId)));
+                                dialog.dismiss();
+                                if (_confirmedVotes.size() == 3)
+                                {
+                                    sendVotesToServer();
+                                }
+                            }
+                        });
+                        Button btnCancel = (Button) dialog.findViewById(R.id.cancel);
+                        btnCancel.setOnClickListener(new OnClickListener()
+                        {
+                            public void onClick(View v)
+                            {
+                                dialog.dismiss();
+                            }
+                        });
+                        dialog.show();
+                    }
+                });
+            }
+            // Votes are finished, and organizer selects the final location
+            else if (gdm.get_group_data().getVoteStarted() && !gdm.get_group_data().getSendingAttendance())
+            {
+                _map.setOnInfoWindowClickListener(new OnInfoWindowClickListener() {
+                    public void onInfoWindowClick(final Marker marker) {
+                        // Display a dialog so the organizer can edit place infos
+                        final Dialog dialog = new Dialog(getActivity());
+
+                        dialog.setContentView(R.layout.place_final_selection_dialog_window);
+                        dialog.setTitle("Sélectionner un lieu final");
+
+                        final EditText editText = (EditText) dialog.findViewById(R.id.editFinalName);
+                        final EditText editInfos = (EditText) dialog.findViewById(R.id.editFinalInformations);
+                        Button btnSave = (Button) dialog.findViewById(R.id.save);
+                        btnSave.setOnClickListener(new OnClickListener() {
+                            public void onClick(View v) {
+                                // TODO update the marker without having to reclick on it
+                                // TODO change the marker icon to show it's been validated
+                                marker.setTitle(editText.getText().toString());
+                                marker.setSnippet(editInfos.getText().toString());
+                                dialog.dismiss();
+                                sendConfirmedLocationToServer(marker);
+                            }
+                        });
+                        Button btnCancel = (Button) dialog.findViewById(R.id.cancel);
+                        btnCancel.setOnClickListener(new OnClickListener() {
+                            public void onClick(View v) {
+                                dialog.dismiss();
+                            }
+                        });
+                        dialog.show();
+                    }
+                });
+            }
+            // Final location is finished, attendance is starting
+            else if (gdm.get_group_data().getSendingAttendance())
+            {
+                _map.setOnInfoWindowClickListener(new OnInfoWindowClickListener()
+                {
+                    public void onInfoWindowClick(final Marker marker)
+                    {
+                        // Display a dialog so the organizer can edit place infos
+                        final Dialog dialog = new Dialog(getActivity());
+
+                        dialog.setContentView(R.layout.place_attendance_dialog_window);
+                        dialog.setTitle("Entrer votre présence");
+
+                        List<String> stringList = new ArrayList<>();  // here is list
+                        stringList.add("Participe");
+                        stringList.add("Participe peut-être");
+                        stringList.add("Ne participe pas");
+
+                        final RadioGroup rg = (RadioGroup) dialog.findViewById(R.id.radio_vote);
+
+                        for(int i=0;i<stringList.size();i++)
+                        {
+                            // dynamically creating RadioButton and adding to RadioGroup.
+                            RadioButton rb = new RadioButton(getActivity());
+                            rb.setText(stringList.get(i));
+                            rg.addView(rb);
+                        }
+
+                        //final EditText editText = (EditText) dialog.findViewById(R.id.radio_vote);
+                        Button btnSave = (Button) dialog.findViewById(R.id.save);
+                        btnSave.setOnClickListener(new OnClickListener()
+                        {
+                            public void onClick(View v)
+                            {
+                                // TODO update the marker without having to reclick on it
+                                // TODO change the marker icon to show it's been validated
+                                int selectedId = rg.getCheckedRadioButtonId();
+                                // get selected radio button from radioGroup
+                                // TODO - make sure the selectedID goes from 1 to 5
+                                // TODO - edit the snippet with the attendees list
+                                marker.setSnippet(marker.getSnippet() + "/n Votre présence:");
+                                dialog.dismiss();
+                            }
+                        });
+                        Button btnCancel = (Button) dialog.findViewById(R.id.cancel);
+                        btnCancel.setOnClickListener(new OnClickListener()
+                        {
+                            public void onClick(View v)
+                            {
+                                dialog.dismiss();
+                            }
+                        });
+                        dialog.show();
+                    }
+                });
+            }
+
+        }
+    }
+
+    public void updatePeopleMarkers()
+    {
+        if (gdm.get_group_data() != null)
+        {
+            for (User user : gdm.get_group_data().getSubscribedUsers().values())
+            {
+                addPersonMarker(_map, user.getGpsLatitude(), user.getGpsLongitude(), user.getName());
+            }
+        }
     }
 
     private void createEventLocations()
@@ -162,7 +351,67 @@ public class MapsManager extends Fragment implements
             ((MainActivity)getActivity()).getDatabaseManager().addEventLocation(event);
         }
         // Enables the voting status of the group
-        gdm.get_group_data().setIsVoting(true);
+        gdm.get_group_data().setVoting(true);
+        ((MainActivity)getActivity()).getDatabaseManager().setVotingStatus(true);
+        gdm.get_group_data().setVoteStarted(true);
+        ((MainActivity)getActivity()).getDatabaseManager().setVoteStartedStatus();
+    }
+
+    private void sendVotesToServer()
+    {
+        boolean votingIsOver = false;
+        for(Map.Entry<String, Integer> entry : _confirmedVotes.entrySet())
+        {
+            gdm.get_group_data().getEventLocations().get(entry.getKey()).getRatings().put(gdm.getUserData().getName(), entry.getValue());
+            ((MainActivity)getActivity()).getDatabaseManager().rateEventLocation(gdm.get_group_data().getEventLocations().get(entry.getKey()), entry.getValue());
+            if (gdm.get_group_data().getEventLocations().get(entry.getKey()).getRatings().size() == gdm.get_group_data().getSubscribedUsers().size() + 1)
+            {
+                votingIsOver = true;
+            }
+            else
+            {
+                votingIsOver = false;
+            }
+        }
+        if (votingIsOver)
+        {
+            gdm.get_group_data().setVoting(false);
+            ((MainActivity)getActivity()).getDatabaseManager().setVotingStatus(false);
+        }
+    }
+
+    private void sendAttendancesToServer()
+    {
+        /*boolean attendanceIsOver = false;
+        for(Map.Entry<String, Integer> entry : _confirmedVotes.entrySet())
+        {
+            // TODO - set rsvp value instead of ""
+            gdm.get_group_data().getEventLocations().get(entry.getKey()).getRsvp().put(gdm.getUserData().getName(), "");
+            ((MainActivity)getActivity()).getDatabaseManager().rateEventLocation(gdm.get_group_data().getEventLocations().get(entry.getKey()), entry.getValue());
+            if (gdm.get_group_data().getEventLocations().get(entry.getKey()).getRsvp().size() == gdm.get_group_data().getSubscribedUsers().size() + 1)
+            {
+                attendanceIsOver = true;
+            }
+            else
+            {
+                attendanceIsOver = false;
+            }
+        }
+        if (attendanceIsOver)
+        {
+            gdm.get_group_data().setLocationChosen(true);
+            ((MainActivity)getActivity()).getDatabaseManager().setAttendanceFinishedStatus();
+        }*/
+    }
+
+    private void sendConfirmedLocationToServer(Marker marker)
+    {
+        gdm.get_group_data().getEventLocations().clear();
+        gdm.get_group_data().setSendingAttendance(true);
+        ((MainActivity)getActivity()).getDatabaseManager().setSendingAttendanceStatus();
+        // TODO - add Dates
+        EventLocation event = new EventLocation(gdm.get_group_data().getName(), marker.getTitle(), marker.getPosition().longitude, marker.getPosition().latitude, null, null, true, null, null, marker.getSnippet(), new HashMap<String, String>());
+        ((MainActivity)getActivity()).getDatabaseManager().finalizeEventLocations(event);
     }
 
 

@@ -7,22 +7,26 @@ public class Group {
     private String name;
     private User organizer;
     // This boolean indicates if 3 places have been selected and are waiting on members' votes
-    private boolean isVoting;
-    private boolean isVotingFinished;
-    private HashMap<String, User> subscribedUsers;
-    private HashMap<String, EventLocation> eventLocations;
+    private boolean voting;
+    private boolean voteStarted;
+    private boolean choosingFinalLocation;
+    private boolean sendingAttendance;
+    private HashMap<String, User> subscribedUsers = new HashMap<>();
+    private HashMap<String, EventLocation> eventLocations = new HashMap<>();
     
     public Group() {
         
     }
     
-    public Group(String name, User organizer, HashMap<String, User> subscribedUsers, HashMap<String, EventLocation> eventLocations, boolean isVoting, boolean isVotingFinished) {
+    public Group(String name, User organizer, HashMap<String, User> subscribedUsers, HashMap<String, EventLocation> eventLocations, boolean voting, boolean voteStarted, boolean choosingFinalLocation, boolean sendingAttendance) {
         this.name = name;
         this.organizer = organizer;
         this.subscribedUsers = subscribedUsers;
         this.eventLocations = eventLocations;
-        this.isVoting = isVoting;
-        this.isVotingFinished = isVotingFinished;
+        this.voting = voting;
+        this.voteStarted = voteStarted;
+        this.choosingFinalLocation = choosingFinalLocation;
+        this.sendingAttendance = sendingAttendance;
     }
     
     public HashMap<String, EventLocation> getEventLocations() {
@@ -45,24 +49,40 @@ public class Group {
         return name;
     }
 
-    public boolean isVoting() {
-        return isVoting;
+    public boolean getVoting() {
+        return voting;
     }
 
-    public boolean isVotingFinished() {
-        return isVotingFinished;
+    public boolean getVoteStarted() {
+        return voteStarted;
+    }
+
+    public boolean getChoosingFinalLocation() {
+        return choosingFinalLocation;
+    }
+
+    public boolean getSendingAttendance() {
+        return sendingAttendance;
     }
     
     public void setName(String name) {
         this.name = name;
     }
 
-    public void setIsVoting(boolean voting) {
-        this.isVoting = voting;
+    public void setVoting(boolean voting) {
+        this.voting = voting;
     }
 
-    public void setIsVotingFinished(boolean voting) {
-        this.isVotingFinished = voting;
+    public void setVoteStarted(boolean voteStarted) {
+        this.voteStarted = voteStarted;
+    }
+
+    public void setChoosingFinalLocation(boolean choosingFinalLocation) {
+        this.choosingFinalLocation = choosingFinalLocation;
+    }
+
+    public void setSendingAttendance(boolean sendingAttendance) {
+        this.sendingAttendance = sendingAttendance;
     }
     
     public User getOrganizer() {

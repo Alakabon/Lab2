@@ -15,14 +15,14 @@ public class EventLocation {
     private String locationName;
     private double gpsLongitude;
     private double gpsLatitude;
-    private HashMap<String, Float> ratings;       // (UserName, Rating)
+    private HashMap<String, Integer> ratings = new HashMap<>();       // (UserName, Rating)
     private String photo_url;
     // This boolean indicates if the place has been chosen and is waiting on members' attendance
     private boolean chosen;
     private Date startTime;
     private Date endTime;
     private String information;
-    private HashMap<String, String> rsvp; //(User, RSVP) RSVP statuses are stored in strings.xml with prefix rsvp
+    private HashMap<String, String> rsvp = new HashMap<>(); //(User, RSVP) RSVP statuses are stored in strings.xml with prefix rsvp
     
     public EventLocation() {
         
@@ -42,7 +42,7 @@ public class EventLocation {
         this.endTime= new Date();
     }
     
-    public EventLocation(String groupName, String locationName, double gpsLongitude, double gpsLatitude, HashMap<String, Float> ratings, String photo_url, boolean chosen, Date startTime, Date endTime, String information, HashMap<String, String> rsvp) {
+    public EventLocation(String groupName, String locationName, double gpsLongitude, double gpsLatitude, HashMap<String, Integer> ratings, String photo_url, boolean chosen, Date startTime, Date endTime, String information, HashMap<String, String> rsvp) {
         this.groupName = groupName;
         this.locationName = locationName;
         this.gpsLongitude = gpsLongitude;
@@ -112,11 +112,11 @@ public class EventLocation {
         this.photo_url = photo_url;
     }
     
-    public HashMap<String, Float> getRatings() {
+    public HashMap<String, Integer> getRatings() {
         return ratings;
     }
     
-    public void setRatings(HashMap<String, Float> ratings) {
+    public void setRatings(HashMap<String, Integer> ratings) {
         this.ratings = ratings;
     }
     
@@ -147,10 +147,10 @@ public class EventLocation {
     }
     
     @Exclude
-    private float calculateAverageRating() {
-        float ratingCount = 0;
-        float sumRatings = 0;
-        float currentRating = 0;
+    public float calculateAverageRating() {
+        int ratingCount = 0;
+        int sumRatings = 0;
+        int currentRating = 0;
         
         for (String s : ratings.keySet()) {
             // Make sure rating is not null;
