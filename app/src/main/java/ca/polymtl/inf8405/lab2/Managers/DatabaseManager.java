@@ -279,11 +279,11 @@ public class DatabaseManager {
     public void set_ctx(Context _ctx) {
         this._ctx = _ctx;
     }
-    
-    
+
+
     // TODO: No longer used, remove ?
     //___________________________________________________________________________________________________________________________________//
-    public boolean saveUserData(final User userData) {
+    /*public boolean saveUserData(final User userData) {
         _result = false;
         try {
             //Creating an instance of DatabaseReference for reading/writing Data from Firebase
@@ -314,7 +314,7 @@ public class DatabaseManager {
         } catch (Exception ex) {
             return false;
         }
-    }
+    }*/
     
     private DatabaseReference getCurrentUserRef() {
         final Group group = ((GlobalDataManager) _ctx.getApplicationContext()).get_group_data();
