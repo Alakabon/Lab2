@@ -34,6 +34,9 @@ public class DatabaseManager {
     private final String organizerLabel = "organizer";
     private final String gpsLatiduteLabel = "gpsLatitude";
     private final String gpsLongitudeLabel = "gpsLongitude";
+    private final String votingLabel = "voting";
+    private final String voteStartedLabel = "voteStarted";
+    private final String sendingAttendanceLabel = "sendingAttendance";
     
     private Context _ctx;
     private boolean _isLoggedIn = false;
@@ -68,7 +71,8 @@ public class DatabaseManager {
                     GPSManager.getLatestGPSLocation(_ctx);
                     Location loc = ((GlobalDataManager) _ctx.getApplicationContext()).getGPSLocation();
                     updateUserLocation(loc.getLongitude(), loc.getLatitude());
-                    
+
+                    // TODO - crashes if the user tries to join the group before locations are added, or on first group create
                     //If user name is not organizer, add him to group if he's not in map
                     if (!_group.getOrganizer().getName().equals(userName)) {
                         addUserToExistingGroup();
@@ -102,7 +106,8 @@ public class DatabaseManager {
                     Group _group = dataSnapshot.getValue(Group.class);
                     ((GlobalDataManager) _ctx.getApplicationContext()).set_group_data(_group);
                 }
-                // Sync markers here ?
+                ((GlobalDataManager) _ctx.getApplicationContext()).getMapsManager().updatePlacesMarkers();
+                ((GlobalDataManager) _ctx.getApplicationContext()).getMapsManager().updatePeopleMarkers();
             }
             
             @Override
@@ -114,7 +119,7 @@ public class DatabaseManager {
     
     private void createNewGroup() {
         final User user = ((GlobalDataManager) _ctx.getApplicationContext()).getUserData();
-        Group group = new Group(user.getGroup(), user, new HashMap<String, User>(), new HashMap<String, EventLocation>(), false, false);
+        Group group = new Group(user.getGroup(), user, new HashMap<String, User>(), new HashMap<String, EventLocation>(), false, false, false, false);
         FirebaseDatabase.getInstance().getReference().child(rootLabel).child(groupsLabel).child(user.getGroup()).setValue(group);
     }
     
@@ -141,17 +146,61 @@ public class DatabaseManager {
         DatabaseReference groupRef = FirebaseDatabase.getInstance().getReference().child(rootLabel).child(groupsLabel).child(currentUser.getGroup());
         DatabaseReference ref = groupRef.child(eventLocationsLabel);
         ref.child(eventLocation.getLocationName()).setValue(eventLocation);
-        
+    }
+
+    public void finalizeEventLocations(EventLocation finalEventLocation) {
+
+        final User currentUser = ((GlobalDataManager) _ctx.getApplicationContext()).getUserData();
+
+        DatabaseReference groupRef = FirebaseDatabase.getInstance().getReference().child(rootLabel).child(groupsLabel).child(currentUser.getGroup());
+        DatabaseReference ref = groupRef.child(eventLocationsLabel);
+        // TODO - disable/remove old locations
+        /*for(EventLocation event : ((GlobalDataManager) _ctx.getApplicationContext()).get_group_data().getEventLocations().values())
+        {
+            ref.child(event.getLocationName()).removeValue();
+        }*/
+        ref.child(finalEventLocation.getLocationName()).setValue(finalEventLocation);
+    }
+
+    public void setVotingStatus(boolean voting) {
+
+        final User currentUser = ((GlobalDataManager) _ctx.getApplicationContext()).getUserData();
+
+        DatabaseReference groupRef = FirebaseDatabase.getInstance().getReference().child(rootLabel).child(groupsLabel).child(currentUser.getGroup());
+        groupRef.child(votingLabel).setValue(voting);
+    }
+
+    public void setVoteStartedStatus() {
+
+        final User currentUser = ((GlobalDataManager) _ctx.getApplicationContext()).getUserData();
+
+        DatabaseReference groupRef = FirebaseDatabase.getInstance().getReference().child(rootLabel).child(groupsLabel).child(currentUser.getGroup());
+        groupRef.child(voteStartedLabel).setValue(true);
+    }
+
+    /*public void sendConfirmedLocationToServer(EventLocation location) {
+
+        final User currentUser = ((GlobalDataManager) _ctx.getApplicationContext()).getUserData();
+
+        DatabaseReference groupRef = FirebaseDatabase.getInstance().getReference().child(rootLabel).child(groupsLabel).child(currentUser.getGroup());
+        groupRef.child(eventLocationsLabel).setValue(true);
+    }*/
+
+    public void setSendingAttendanceStatus() {
+
+        final User currentUser = ((GlobalDataManager) _ctx.getApplicationContext()).getUserData();
+
+        DatabaseReference groupRef = FirebaseDatabase.getInstance().getReference().child(rootLabel).child(groupsLabel).child(currentUser.getGroup());
+        groupRef.child(sendingAttendanceLabel).setValue(true);
     }
     
-    public void rateEventLocation(EventLocation eventLocation, float rating) {
+    public void rateEventLocation(EventLocation eventLocation, int rating) {
         
         final Group group = ((GlobalDataManager) _ctx.getApplicationContext()).get_group_data();
         final User currentUser = ((GlobalDataManager) _ctx.getApplicationContext()).getUserData();
         
         DatabaseReference specificEvent = FirebaseDatabase.getInstance().getReference().child(rootLabel).child(groupsLabel).child(group.getName()).child(eventLocationsLabel).child(eventLocation.getLocationName());
         specificEvent.child(ratingsLabel).child(currentUser.getName()).setValue(rating);
-        
     }
     
     public void setRSVP(EventLocation eventLocation, String rsvp) {
