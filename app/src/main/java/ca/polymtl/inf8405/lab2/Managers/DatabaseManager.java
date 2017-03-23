@@ -4,6 +4,7 @@ import android.content.Context;
 import android.location.Location;
 import android.support.annotation.NonNull;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -14,6 +15,8 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 import ca.polymtl.inf8405.lab2.Entities.EventLocation;
 import ca.polymtl.inf8405.lab2.Entities.Group;
@@ -131,6 +134,46 @@ public class DatabaseManager {
         if (group.getSubscribedUsers().get(currentUser.getName()) == null) {
             group.getSubscribedUsers().put(currentUser.getName(), currentUser);
             FirebaseDatabase.getInstance().getReference().child(rootLabel).child(groupsLabel).child(currentUser.getGroup()).getRef().child(subscribedUsersLabel).setValue(group.getSubscribedUsers());
+        }
+    }
+    
+    public void removeUserFromGroup(){
+    
+        final Group group = ((GlobalDataManager) _ctx.getApplicationContext()).get_group_data();
+        final User currentUser = ((GlobalDataManager) _ctx.getApplicationContext()).getUserData();
+        
+        DatabaseReference userRef = getCurrentUserRef();
+        String locationName;
+        //Organiser, promote someone else or do nothing?
+        if (group.getOrganizer().getName().equals(currentUser.getName())) {
+            Toast.makeText(_ctx,"L'organisateur de peut pas se desinscrire du groupe", Toast.LENGTH_SHORT);
+        }
+        //Regular user, wipe related data from rsvp and and rating
+        else {
+            if (userRef != null) {
+                HashMap eventLocations = group.getEventLocations();
+                Iterator it = eventLocations.entrySet().iterator();
+                // remove rating and rsvp
+                while (it.hasNext()){
+                    Map.Entry pair = (Map.Entry)it.next();
+                    EventLocation location = ((EventLocation)pair.getValue());
+                    locationName = location.getLocationName();
+    
+                    DatabaseReference specificEventLocation = FirebaseDatabase.getInstance().getReference().child(rootLabel).child(groupsLabel).child(group.getName()).child(eventLocationsLabel).child(locationName);
+                    if (specificEventLocation != null){
+                        DatabaseReference specificRatings = specificEventLocation.child(ratingsLabel).child(currentUser.getName());
+                        if (specificRatings != null){
+                            specificRatings.removeValue();
+                        }
+                        DatabaseReference specificRSVP =specificEventLocation.child(ratingsLabel).child(currentUser.getName());
+                        if(specificRSVP != null){
+                            specificRSVP.removeValue();
+                        }
+                    }
+                }
+                //Then erase user
+                userRef.removeValue();
+            }
         }
     }
     
