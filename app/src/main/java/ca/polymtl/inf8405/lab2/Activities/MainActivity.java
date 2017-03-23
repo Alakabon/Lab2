@@ -9,7 +9,7 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.location.Location;
+import android.graphics.drawable.BitmapDrawable;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.os.Bundle;
@@ -27,17 +27,14 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
-import android.widget.TextView;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import java.io.ByteArrayOutputStream;
-import java.util.Calendar;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 
-import ca.polymtl.inf8405.lab2.Entities.EventLocation;
 import ca.polymtl.inf8405.lab2.Entities.User;
 import ca.polymtl.inf8405.lab2.Managers.DatabaseManager;
 import ca.polymtl.inf8405.lab2.Managers.EventsManager;
@@ -54,7 +51,7 @@ import ca.polymtl.inf8405.lab2.Receivers.LowBatteryManager;
 import ca.polymtl.inf8405.lab2.Receivers.NetworkManager;
 
 public class MainActivity extends AppCompatActivity {
-
+    
     /**
      * The android.support.v4.view.PagerAdapter that will provide
      * fragments for each of the sections. We use a
@@ -103,7 +100,7 @@ public class MainActivity extends AppCompatActivity {
         
         //
         ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
-    
+        
         //Create and configure DatabaseManager to enable offline/ online sync
         final DatabaseManager dbm = new DatabaseManager(this);
         _dbManager = dbm;
@@ -116,7 +113,7 @@ public class MainActivity extends AppCompatActivity {
         
         // Create the adapter that will return a fragment for each of primary sections of the activity.
         final Fragment[] _fgms = {new ProfileManager(), new MapsManager(), new PlaceManager(), new EventsManager(), new StatusManager()};
-        _mapsManager = (MapsManager)_fgms[1];
+        _mapsManager = (MapsManager) _fgms[1];
         _gdm.setTabs(_fgms, this);
         
         // The ViewPager that will host the section contents and setting up the ViewPager with the sections adapter.
@@ -140,16 +137,17 @@ public class MainActivity extends AppCompatActivity {
                     // Make user and link to DB
                     _gdm.getUserData().setName(((EditText) findViewById(R.id.txt_alias)).getText().toString());
                     _gdm.getUserData().setGroup(((EditText) findViewById(R.id.txt_group)).getText().toString());
-                    _gdm.getUserData().setPhotoURLFromBitmap(findViewById(R.id.img_profile).getDrawingCache());
+                    ImageView image = (ImageView) findViewById(R.id.img_profile);
+                    _gdm.getUserData().setPhoto_url(ImageManager.encodeImageToString(((BitmapDrawable) image.getDrawable()).getBitmap()));
                     //_gdm.getUserData().setGpsLongitude(Double.valueOf(((TextView) findViewById(R.id.txt4)).getText().toString())); Causes Null pointer exepctions... field invalid ^
                     //_gdm.getUserData().setGpsLatitude(Double.valueOf(((TextView) findViewById(R.id.txt3)).getText().toString()));
-
+                    
                     //Already logged in
-                    if (!_dbManager.get_isLoggedIn()){
+                    if (!_dbManager.get_isLoggedIn()) {
                         _dbManager.login();
                     }
                     _dbManager.syncGroupData();
-
+                    
                     _mapsManager.updateMarkers();
                     applySavedLocalProfile();
                     Snackbar.make(view, getString(R.string.msg_save) + "[" + _vp.getCurrentItem() + "]", Snackbar.LENGTH_LONG).setAction("Action", null).show();
@@ -181,28 +179,6 @@ public class MainActivity extends AppCompatActivity {
                     ex.printStackTrace();
                     Snackbar.make(view, "ERROR:" + ex.getMessage(), Snackbar.LENGTH_LONG).setAction("Action", null).show();
                 }
-            }
-        });
-        
-        FloatingActionButton fabDebugAdd = (FloatingActionButton) findViewById(R.id.fab_add__debug_event);
-        fabDebugAdd.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                EditText nameField = (EditText) findViewById(R.id.txt_alias);
-                EditText groupField = (EditText) findViewById(R.id.txt_group);
-                
-                User currentUser = new User(nameField.getText().toString(), groupField.getText().toString(), "", 0, 0);
-                
-                HashMap<String, Float> ratings = new HashMap<>();
-                ratings.put("TestPerson", 3f);
-                
-                HashMap<String, String> rsvp = new HashMap<>();
-                rsvp.put("TestPerson", getString(R.string.rsvp_Maybe));
-                
-                final String testImageURL = "https://i.vimeocdn.com/portrait/58832_300x300";
-                
-                EventLocation eventLocation = new EventLocation(currentUser.getGroup(), "debugLocation", 0, 0, ratings, testImageURL, false, Calendar.getInstance().getTime(), Calendar.getInstance().getTime(), "no info", rsvp);
-                _dbManager.addEventLocation(eventLocation);
             }
         });
     }
@@ -261,14 +237,12 @@ public class MainActivity extends AppCompatActivity {
         }
         return _username;
     }
-
-    public DatabaseManager getDatabaseManager()
-    {
+    
+    public DatabaseManager getDatabaseManager() {
         return _dbManager;
     }
-
-    public MapsManager getMapsManager()
-    {
+    
+    public MapsManager getMapsManager() {
         return _mapsManager;
     }
     

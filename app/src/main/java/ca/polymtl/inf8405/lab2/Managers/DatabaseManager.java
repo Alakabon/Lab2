@@ -14,13 +14,10 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.HashMap;
-import java.util.ArrayList;
 
-import ca.polymtl.inf8405.lab2.Activities.MainActivity;
 import ca.polymtl.inf8405.lab2.Entities.EventLocation;
 import ca.polymtl.inf8405.lab2.Entities.Group;
 import ca.polymtl.inf8405.lab2.Entities.User;
-import ca.polymtl.inf8405.lab2.R;
 import ca.polymtl.inf8405.lab2.Receivers.GPSManager;
 
 public class DatabaseManager {
@@ -76,14 +73,13 @@ public class DatabaseManager {
                     if (!_group.getOrganizer().getName().equals(userName)) {
                         addUserToExistingGroup();
                     }
-                    _isLoggedIn = true;
                 }
                 
                 // Group does not exist, create new group and make user organizer.
                 else {
                     createNewGroup();
-                    _isLoggedIn = true;
                 }
+                _isLoggedIn = true;
             }
             
             @Override
@@ -94,18 +90,19 @@ public class DatabaseManager {
     }
     
     public void syncGroupData() {
-        //Get group and verify if it exists and if user is registered
         final String userGroup = ((GlobalDataManager) _ctx.getApplicationContext()).getUserData().getGroup();
         final String userName = ((GlobalDataManager) _ctx.getApplicationContext()).getUserData().getName();
         
+        // Get group ref
         FirebaseDatabase.getInstance().getReference().child(rootLabel).child(groupsLabel).child(userGroup).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                // Group already exists, load it up for app to use
+                // Group exists, load it up for app to use
                 if (dataSnapshot.exists()) {
                     Group _group = dataSnapshot.getValue(Group.class);
-                   ((GlobalDataManager) _ctx.getApplicationContext()).set_group_data(_group);
+                    ((GlobalDataManager) _ctx.getApplicationContext()).set_group_data(_group);
                 }
+                // Sync markers here ?
             }
             
             @Override
@@ -145,9 +142,6 @@ public class DatabaseManager {
         DatabaseReference ref = groupRef.child(eventLocationsLabel);
         ref.child(eventLocation.getLocationName()).setValue(eventLocation);
         
-        // TODO Testing only, remove soon
-        rateEventLocation(eventLocation, 4);
-        setRSVP(eventLocation, _ctx.getString(R.string.rsvp_Yes));
     }
     
     public void rateEventLocation(EventLocation eventLocation, float rating) {
@@ -195,6 +189,7 @@ public class DatabaseManager {
     }
     
     
+    // TODO: No longer used, remove ?
     //___________________________________________________________________________________________________________________________________//
     public boolean saveUserData(final User userData) {
         _result = false;
