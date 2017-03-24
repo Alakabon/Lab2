@@ -23,7 +23,11 @@ import java.util.*;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+<<<<<<< HEAD
 import com.google.android.gms.maps.model.BitmapDescriptorFactory ;
+=======
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+>>>>>>> d4be63bc964fad5a59d57e0eaf152020d5cfdf57
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -379,7 +383,6 @@ public class MapsManager extends Fragment implements
 
     private void addPersonMarker(GoogleMap map, double lat, double lon, String name) {
         map.addMarker(new MarkerOptions()
-                //.icon(BitmapDescriptorFactory.fromResource(R.drawable.person_marker))
                 .position(new LatLng(lat, lon))
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE))
                 .title(name));
@@ -390,6 +393,7 @@ public class MapsManager extends Fragment implements
         if (_markerArray.size() < 3)
         {
             Marker marker = map.addMarker(new MarkerOptions()
+                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.places_icon))
                     .position(new LatLng(lat, lon))
                     .title(title)
                     .snippet(snippet));
