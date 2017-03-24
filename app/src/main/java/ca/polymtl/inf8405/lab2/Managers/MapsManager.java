@@ -96,8 +96,7 @@ public class MapsManager extends Fragment implements
     @Override
     public void onInfoWindowClick(final Marker marker)
     {
-        // TODO - make sure you cant edit the info windows of people markers
-        // TODO - make sure the location names are not the same
+        // TODO - NORMAL make sure you cant edit the info windows of people markers
         // Allow the organizer to edit the infos only if the 3 locations havent been sent yet
         if (!_confirmedLocationMarkersArray.contains(marker))
         {
@@ -113,7 +112,7 @@ public class MapsManager extends Fragment implements
             {
                 public void onClick(View v)
                 {
-                    // TODO add picture support
+                    // TODO - MINOR add picture support
                     marker.setTitle(editText.getText().toString());
                     _confirmedLocationMarkersArray.add(marker);
                     dialog.dismiss();
@@ -137,7 +136,7 @@ public class MapsManager extends Fragment implements
 
     public void updatePlacesMarkers()
     {
-        // TODO - add the locations informations + votes results/attendance on markers and have the titles keep the location name
+        // TODO - MINOR add the locations informations + votes results/attendance on markers and have the titles keep the location name
         updateInfoWindowClickListener();
         if (gdm.get_group_data() != null)
         {
@@ -155,15 +154,14 @@ public class MapsManager extends Fragment implements
                     }
                 }
             }
-            // TODO - redesign the markers infos displaying (adding the RSVP list)
+            // TODO - IMPORTANT redesign the markers infos displaying (adding the RSVP list)
             else
             {
-                // TODO - new marker icon to make sure the location is highlighted
                 for (EventLocation event : gdm.get_group_data().getEventLocations().values())
                 {
                     if (event.getRsvp().containsKey(gdm.getUserData().getName()))
                     {
-                        // TODO - format the rsvp data structure so that it fits in a single Information window
+                        // TODO - MINOR format the rsvp data structure so that it fits in a single Information window
                         addPlaceMarker(_map, event.getGpsLatitude(), event.getGpsLongitude(), event.getLocationName(), "");
                     }
                     else
@@ -293,7 +291,7 @@ public class MapsManager extends Fragment implements
                             btnSave.setOnClickListener(new OnClickListener() {
                                 public void onClick(View v) {
                                     int selectedId = rg.getCheckedRadioButtonId();
-                                    // TODO - edit the snippet with the attendees list
+                                    // TODO - IMPORTANT edit the snippet with the attendees list
                                     switch (selectedId) {
                                         case 0:
                                             ((MainActivity) getActivity()).getDatabaseManager().setRSVP(gdm.get_group_data().getEventLocations().get(marker.getTitle()), rb1.getText().toString());
@@ -305,7 +303,6 @@ public class MapsManager extends Fragment implements
                                             ((MainActivity) getActivity()).getDatabaseManager().setRSVP(gdm.get_group_data().getEventLocations().get(marker.getTitle()), rb3.getText().toString());
                                             break;
                                     }
-                                    //((MainActivity)getActivity()).getDatabaseManager().setRSVP(gdm.get_group_data().getEventLocations().get(marker.getTitle().toString()), checkedRadioButton.getText().toString());
                                     marker.setSnippet(marker.getSnippet() + "/n Votre présence:");
                                     dialog.dismiss();
                                 }
@@ -374,36 +371,12 @@ public class MapsManager extends Fragment implements
         }
     }
 
-    private void sendAttendancesToServer()
-    {
-        /*boolean attendanceIsOver = false;
-        for(Map.Entry<String, Integer> entry : _confirmedVotes.entrySet())
-        {
-            // TODO - set rsvp value instead of ""
-            gdm.get_group_data().getEventLocations().get(entry.getKey()).getRsvp().put(gdm.getUserData().getName(), "");
-            ((MainActivity)getActivity()).getDatabaseManager().rateEventLocation(gdm.get_group_data().getEventLocations().get(entry.getKey()), entry.getValue());
-            if (gdm.get_group_data().getEventLocations().get(entry.getKey()).getRsvp().size() == gdm.get_group_data().getSubscribedUsers().size() + 1)
-            {
-                attendanceIsOver = true;
-            }
-            else
-            {
-                attendanceIsOver = false;
-            }
-        }
-        if (attendanceIsOver)
-        {
-            gdm.get_group_data().setLocationChosen(true);
-            ((MainActivity)getActivity()).getDatabaseManager().setAttendanceFinishedStatus();
-        }*/
-    }
-
     private void sendConfirmedLocationToServer(Marker marker)
     {
         gdm.get_group_data().getEventLocations().clear();
         gdm.get_group_data().setSendingAttendance(true);
         ((MainActivity)getActivity()).getDatabaseManager().setSendingAttendanceStatus();
-        // TODO - add Dates
+        // TODO - MINOR add Dates
         EventLocation event = new EventLocation(gdm.get_group_data().getName(), marker.getTitle(), marker.getPosition().longitude, marker.getPosition().latitude, null, null, true, null, null, marker.getSnippet(), new HashMap<String, String>());
         ((MainActivity)getActivity()).getDatabaseManager().finalizeEventLocations(event);
     }
@@ -411,7 +384,7 @@ public class MapsManager extends Fragment implements
 
     private void addPersonMarker(GoogleMap map, double lat, double lon, String name) {
         map.addMarker(new MarkerOptions()
-                // TODO add a customized icon for Person markers
+                // TODO - MINOR add a customized icon for Person markers
                 //.icon(BitmapDescriptorFactory.fromResource(R.drawable.person_marker))
                 .position(new LatLng(lat, lon))
                 .title(name));
