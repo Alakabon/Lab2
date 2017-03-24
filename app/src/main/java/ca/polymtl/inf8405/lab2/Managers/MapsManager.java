@@ -155,7 +155,7 @@ public class MapsManager extends Fragment implements
                     }
                 }
             }
-            // TODO - redesign the markers infos displaying
+            // TODO - redesign the markers infos displaying (adding the RSVP list)
             else
             {
                 // TODO - new marker icon to make sure the location is highlighted
@@ -192,18 +192,16 @@ public class MapsManager extends Fragment implements
                         dialog.setContentView(R.layout.place_vote_dialog_window);
                         dialog.setTitle("Entrer votre vote");
 
-                        List<String> stringList = new ArrayList<>();  // here is list
-                        for(int i=0;i<5;i++)
-                        {
-                            stringList.add("Vote " + (i + 1));
-                        }
-
                         final RadioGroup rg = (RadioGroup) dialog.findViewById(R.id.radio_vote);
 
-                        for(int i=0;i<stringList.size();i++)
-                        {
-                            // dynamically creating RadioButton and adding to RadioGroup.
-                            RadioButton rb = new RadioButton(getActivity());
+                        List<String> stringList = new ArrayList<>();
+                        for(int i=1; i < 6 ; i++) {
+                            stringList.add(Integer.toString(i));
+                        }
+
+                        for(int i = 0 ; i < stringList.size() ; i++){
+                            RadioButton rb = new RadioButton(getActivity()); // dynamically creating RadioButton and adding to RadioGroup.
+                            rb.setId(i+1);
                             rb.setText(stringList.get(i));
                             rg.addView(rb);
                         }
@@ -213,11 +211,9 @@ public class MapsManager extends Fragment implements
                             public void onClick(View v)
                             {
                                 int selectedId = rg.getCheckedRadioButtonId();
-                                selectedId++;
                                 // get selected radio button from radioGroup
-                                // TODO - make sure the selectedID goes from 1 to 5
-                                _confirmedVotes.put(marker.getTitle().toString(),  selectedId);
-                                marker.setSnippet(marker.getSnippet() + "/n Votre vote:" + (Integer.toString(selectedId)));
+                                _confirmedVotes.put(marker.getTitle().toString(), selectedId);
+                                marker.setSnippet(marker.getSnippet() + "/n Votre vote:" + selectedId);
                                 dialog.dismiss();
                                 if (_confirmedVotes.size() == 3)
                                 {
@@ -253,8 +249,6 @@ public class MapsManager extends Fragment implements
                         Button btnSave = (Button) dialog.findViewById(R.id.save);
                         btnSave.setOnClickListener(new OnClickListener() {
                             public void onClick(View v) {
-                                // TODO update the marker without having to reclick on it
-                                // TODO change the marker icon to show it's been validated
                                 marker.setTitle(editText.getText().toString());
                                 marker.setSnippet(editInfos.getText().toString());
                                 dialog.dismiss();
@@ -272,60 +266,60 @@ public class MapsManager extends Fragment implements
                 });
             }
             // Final location is finished, attendance is starting
-            else if (gdm.get_group_data().getSendingAttendance())
-            {
-                _map.setOnInfoWindowClickListener(new OnInfoWindowClickListener()
-                {
-                    public void onInfoWindowClick(final Marker marker)
-                    {
-                        // Display a dialog so the organizer can edit place infos
-                        final Dialog dialog = new Dialog(getActivity());
+            else {
+                if (gdm.get_group_data().getSendingAttendance()) {
+                    _map.setOnInfoWindowClickListener(new OnInfoWindowClickListener() {
+                        public void onInfoWindowClick(final Marker marker) {
+                            // Display a dialog so the organizer can edit place infos
+                            final Dialog dialog = new Dialog(getActivity());
 
-                        dialog.setContentView(R.layout.place_attendance_dialog_window);
-                        dialog.setTitle("Entrer votre présence");
+                            dialog.setContentView(R.layout.place_attendance_dialog_window);
+                            dialog.setTitle("Entrer votre présence");
 
-                        List<String> stringList = new ArrayList<>();  // here is list
-                        stringList.add("Participe");
-                        stringList.add("Participe peut-être");
-                        stringList.add("Ne participe pas");
-
-                        final RadioGroup rg = (RadioGroup) dialog.findViewById(R.id.radio_vote);
-
-                        for(int i=0;i<stringList.size();i++)
-                        {
-                            // dynamically creating RadioButton and adding to RadioGroup.
-                            RadioButton rb = new RadioButton(getActivity());
-                            rb.setText(stringList.get(i));
-                            rg.addView(rb);
+                            final RadioGroup rg = (RadioGroup) dialog.findViewById(R.id.radio_vote);
+                            Button btnSave = (Button) dialog.findViewById(R.id.save);
+                            final RadioButton rb1 = new RadioButton(getActivity()); // dynamically creating RadioButton and adding to RadioGroup.
+                            rb1.setId(0);
+                            rb1.setText("Participe");
+                            rg.addView(rb1);
+                            final RadioButton rb2 = new RadioButton(getActivity()); // dynamically creating RadioButton and adding to RadioGroup.
+                            rb2.setId(1);
+                            rb2.setText("Peut-etre");
+                            rg.addView(rb2);
+                            final RadioButton rb3 = new RadioButton(getActivity()); // dynamically creating RadioButton and adding to RadioGroup.
+                            rb3.setId(2);
+                            rb3.setText("Ne participe pas");
+                            rg.addView(rb3);
+                            btnSave.setOnClickListener(new OnClickListener() {
+                                public void onClick(View v) {
+                                    int selectedId = rg.getCheckedRadioButtonId();
+                                    // TODO - edit the snippet with the attendees list
+                                    switch (selectedId) {
+                                        case 0:
+                                            ((MainActivity) getActivity()).getDatabaseManager().setRSVP(gdm.get_group_data().getEventLocations().get(marker.getTitle()), rb1.getText().toString());
+                                            break;
+                                        case 1:
+                                            ((MainActivity) getActivity()).getDatabaseManager().setRSVP(gdm.get_group_data().getEventLocations().get(marker.getTitle()), rb2.getText().toString());
+                                            break;
+                                        case 2:
+                                            ((MainActivity) getActivity()).getDatabaseManager().setRSVP(gdm.get_group_data().getEventLocations().get(marker.getTitle()), rb3.getText().toString());
+                                            break;
+                                    }
+                                    //((MainActivity)getActivity()).getDatabaseManager().setRSVP(gdm.get_group_data().getEventLocations().get(marker.getTitle().toString()), checkedRadioButton.getText().toString());
+                                    marker.setSnippet(marker.getSnippet() + "/n Votre présence:");
+                                    dialog.dismiss();
+                                }
+                            });
+                            Button btnCancel = (Button) dialog.findViewById(R.id.cancel);
+                            btnCancel.setOnClickListener(new OnClickListener() {
+                                public void onClick(View v) {
+                                    dialog.dismiss();
+                                }
+                            });
+                            dialog.show();
                         }
-
-                        //final EditText editText = (EditText) dialog.findViewById(R.id.radio_vote);
-                        Button btnSave = (Button) dialog.findViewById(R.id.save);
-                        btnSave.setOnClickListener(new OnClickListener()
-                        {
-                            public void onClick(View v)
-                            {
-                                // TODO update the marker without having to reclick on it
-                                // TODO change the marker icon to show it's been validated
-                                int selectedId = rg.getCheckedRadioButtonId();
-                                // get selected radio button from radioGroup
-                                // TODO - make sure the selectedID goes from 1 to 5
-                                // TODO - edit the snippet with the attendees list
-                                marker.setSnippet(marker.getSnippet() + "/n Votre présence:");
-                                dialog.dismiss();
-                            }
-                        });
-                        Button btnCancel = (Button) dialog.findViewById(R.id.cancel);
-                        btnCancel.setOnClickListener(new OnClickListener()
-                        {
-                            public void onClick(View v)
-                            {
-                                dialog.dismiss();
-                            }
-                        });
-                        dialog.show();
-                    }
-                });
+                    });
+                }
             }
 
         }

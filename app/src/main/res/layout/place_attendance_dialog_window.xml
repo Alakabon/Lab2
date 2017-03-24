@@ -2,7 +2,6 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical" android:layout_width="300dp"
     android:layout_height="300dp">
-    <!-- TODO change layout size -->
     <RadioGroup
 
         android:id="@+id/radio_vote"
@@ -10,6 +9,24 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical"
         android:orientation="vertical">
+        <!--<RadioButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/option1"
+            android:text="Participe"
+            />
+        <RadioButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/option2"
+            android:text="Participe peut-être"
+            />
+        <RadioButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/option3"
+            android:text="Ne participe pas"
+            />-->
     </RadioGroup>
     <LinearLayout
         android:layout_width="fill_parent"

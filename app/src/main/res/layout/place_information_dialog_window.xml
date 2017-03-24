@@ -2,7 +2,6 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical" android:layout_width="300dp"
     android:layout_height="200dp">
-    <!-- TODO change layout size -->
     <EditText
         android:id="@+id/editName"
         android:hint="Entrer le nom du lieu"
@@ -11,15 +10,6 @@
 
         <requestFocus />
     </EditText>
-
-    <!-- TODO allow user to take a picture for a place here
-    <EditText
-        android:id="@+id/editName"
-        android:hint="Enter some thing"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" >
-    </EditText>
--->
     <LinearLayout
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"

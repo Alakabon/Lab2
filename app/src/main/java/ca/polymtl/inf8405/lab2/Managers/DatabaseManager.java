@@ -74,11 +74,16 @@ public class DatabaseManager {
                     GPSManager.getLatestGPSLocation(_ctx);
                     Location loc = ((GlobalDataManager) _ctx.getApplicationContext()).getGPSLocation();
                     updateUserLocation(loc.getLongitude(), loc.getLatitude());
-
-                    // TODO - crashes if the user tries to join the group before locations are added, or on first group create
                     //If user name is not organizer, add him to group if he's not in map
-                    if (!_group.getOrganizer().getName().equals(userName)) {
-                        addUserToExistingGroup();
+                    try
+                    {
+                        if (!_group.getOrganizer().getName().equals(userName)) {
+                            addUserToExistingGroup();
+                        }
+                    }
+                    catch(Exception ex)
+                    {
+
                     }
                 }
                 
@@ -221,14 +226,6 @@ public class DatabaseManager {
         groupRef.child(voteStartedLabel).setValue(true);
     }
 
-    /*public void sendConfirmedLocationToServer(EventLocation location) {
-
-        final User currentUser = ((GlobalDataManager) _ctx.getApplicationContext()).getUserData();
-
-        DatabaseReference groupRef = FirebaseDatabase.getInstance().getReference().child(rootLabel).child(groupsLabel).child(currentUser.getGroup());
-        groupRef.child(eventLocationsLabel).setValue(true);
-    }*/
-
     public void setSendingAttendanceStatus() {
 
         final User currentUser = ((GlobalDataManager) _ctx.getApplicationContext()).getUserData();
@@ -279,42 +276,6 @@ public class DatabaseManager {
     public void set_ctx(Context _ctx) {
         this._ctx = _ctx;
     }
-
-
-    // TODO: No longer used, remove ?
-    //___________________________________________________________________________________________________________________________________//
-    /*public boolean saveUserData(final User userData) {
-        _result = false;
-        try {
-            //Creating an instance of DatabaseReference for reading/writing Data from Firebase
-            final DatabaseReference _ref = FirebaseDatabase.getInstance().getReference().child(rootLabel).child(usersLabel).child(userData.getName());
-            //Attaching an asynchronous listener to reference
-            //The listener is triggered once for the initial state of the data and then does not trigger again.
-            _ref.addListenerForSingleValueEvent(new ValueEventListener() {
-                @Override
-                public void onDataChange(DataSnapshot dataSnapshot) {
-                    //Since we are using Java object, the contents of the object are automatically mapped to child locations in a nested fashion
-                    //HashMap<String, User> _user = new HashMap<String, User>();
-                    //_user.put(userData.getName(), userData);
-                    _ref.setValue(userData).addOnCompleteListener(new OnCompleteListener<Void>() {
-                        @Override
-                        public void onComplete(@NonNull Task<Void> task) {
-                            _result = task.isSuccessful();
-                        }
-                    });
-                }
-                
-                @Override
-                public void onCancelled(DatabaseError databaseError) {
-                    Log.w(TAG, "loadData:onCancelled", databaseError.toException());
-                    _result = false;
-                }
-            });
-            return _result;
-        } catch (Exception ex) {
-            return false;
-        }
-    }*/
     
     private DatabaseReference getCurrentUserRef() {
         final Group group = ((GlobalDataManager) _ctx.getApplicationContext()).get_group_data();
