@@ -32,7 +32,7 @@ public class SectionsPagerAdapter extends FragmentPagerAdapter {
     @Override
     public int getCount() {
         // Show 5 total tabs.
-        return 5;
+        return 3;
     }
 
     @Override
@@ -43,10 +43,6 @@ public class SectionsPagerAdapter extends FragmentPagerAdapter {
             case 1:
                 return _ctx.getString(R.string.title_map);
             case 2:
-                return _ctx.getString(R.string.title_places);
-            case 3:
-                return _ctx.getString(R.string.title_events);
-            case 4:
                 return _ctx.getString(R.string.title_status);
         }
         return null;

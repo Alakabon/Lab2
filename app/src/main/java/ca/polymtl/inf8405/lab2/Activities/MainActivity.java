@@ -37,11 +37,9 @@ import java.util.Random;
 
 import ca.polymtl.inf8405.lab2.Entities.User;
 import ca.polymtl.inf8405.lab2.Managers.DatabaseManager;
-import ca.polymtl.inf8405.lab2.Managers.EventsManager;
 import ca.polymtl.inf8405.lab2.Managers.GlobalDataManager;
 import ca.polymtl.inf8405.lab2.Managers.ImageManager;
 import ca.polymtl.inf8405.lab2.Managers.MapsManager;
-import ca.polymtl.inf8405.lab2.Managers.PlaceManager;
 import ca.polymtl.inf8405.lab2.Managers.ProfileManager;
 import ca.polymtl.inf8405.lab2.Managers.SectionsPagerAdapter;
 import ca.polymtl.inf8405.lab2.Managers.StatusManager;
@@ -78,27 +76,6 @@ public class MainActivity extends AppCompatActivity {
         final GlobalDataManager _gdm = (GlobalDataManager) this.getApplicationContext();
         _gdm.setUserData(_localProfile);
         
-        /* BroadcastReceiver registration section
-
-           In Android these are the components that listen to broadcast events.
-           Broadcast events are events that are sent with the intention of notifying multiple receivers.
-           Android uses these broadcasts to inform interested components of system events, like
-           application installs, mounting or removing the sd card, a low battery, the completion of the boot process and so on.
-           In this section we will register two BroadcastReceiver for detecting low battery level and connectivity status changes
-           First command will register battery receiver for detecting low battery level
-           There are two ways of registering broadcast receivers in Android:
-                1- In the code (our case)
-                2- In AndroidManifest.xml
-           Second command will fire an event whenever connectivity status changes (We can check the device’s current connectivity status.
-                                                                                   But this is only a temporary snapshot of the status.
-                                                                                   It might change anytime, given the volatility of a mobile environment.
-                                                                                   Thus we will register for a broadcast event.)
-
-            We will only receive broadcasts as long as context where we registered your receiver is alive.
-            So when activity or application is killed (depending where we registered your receiver) we won't receive broadcasts anymore.
-         */
-        
-        //
         ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
         
         //Create and configure DatabaseManager to enable offline/ online sync
@@ -112,7 +89,7 @@ public class MainActivity extends AppCompatActivity {
         registerReceiver(new GPSManager(this, _dbManager), new IntentFilter(LocationManager.PROVIDERS_CHANGED_ACTION));
         
         // Create the adapter that will return a fragment for each of primary sections of the activity.
-        final Fragment[] _fgms = {new ProfileManager(), new MapsManager(), new PlaceManager(), new EventsManager(), new StatusManager()};
+        final Fragment[] _fgms = {new ProfileManager(), new MapsManager(), new StatusManager()};
         //_mapsManager = (MapsManager) _fgms[1];
         _gdm.setTabs(_fgms, this);
         
@@ -124,9 +101,7 @@ public class MainActivity extends AppCompatActivity {
         _tab.setupWithViewPager(_vp);
         _tab.getTabAt(0).setIcon(R.drawable.profile_icon);
         _tab.getTabAt(1).setIcon(R.drawable.google_maps_icon);
-        _tab.getTabAt(2).setIcon(R.drawable.places_icon);
-        _tab.getTabAt(3).setIcon(R.drawable.events_icon);
-        _tab.getTabAt(4).setIcon(R.drawable.status_icon);
+        _tab.getTabAt(2).setIcon(R.drawable.status_icon);
         
         //Preparing and Saving data to DB
         ((FloatingActionButton) findViewById(R.id.fab_save)).setOnClickListener(new View.OnClickListener() {
@@ -139,8 +114,6 @@ public class MainActivity extends AppCompatActivity {
                     _gdm.getUserData().setGroup(((EditText) findViewById(R.id.txt_group)).getText().toString());
                     ImageView image = (ImageView) findViewById(R.id.img_profile);
                     _gdm.getUserData().setPhoto_url(ImageManager.encodeImageToString(((BitmapDrawable) image.getDrawable()).getBitmap()));
-                    //_gdm.getUserData().setGpsLongitude(Double.valueOf(((TextView) findViewById(R.id.txt4)).getText().toString())); Causes Null pointer exepctions... field invalid ^
-                    //_gdm.getUserData().setGpsLatitude(Double.valueOf(((TextView) findViewById(R.id.txt3)).getText().toString()));
                     
                     //Already logged in
                     if (!_dbManager.get_isLoggedIn()) {
@@ -149,30 +122,7 @@ public class MainActivity extends AppCompatActivity {
                     _dbManager.syncGroupData();
                     applySavedLocalProfile();
                     Snackbar.make(view, getString(R.string.msg_save) + "[" + _vp.getCurrentItem() + "]", Snackbar.LENGTH_LONG).setAction("Action", null).show();
-
-                    /* Reza's thing
-                    switch (_vp.getCurrentItem()) {
-                        case 0: //Save profile data from the 1st Fragment (Profile Manager)
-                            _gdm.getUserData().setName(((EditText) findViewById(R.id.txt_alias)).getText().toString());
-                            _gdm.getUserData().setGroup(((EditText) findViewById(R.id.txt_group)).getText().toString());
-                            _gdm.getUserData().setPhoto_url(((ImageView) findViewById(R.id.img_profile)).getTag().toString());
-                            break;
-                        case 1: //Save map data from the 2st Fragment (Map Manager)
-                            break;
-                        case 2: //Save place data from the 3st Fragment (Place Manager)
-                            break;
-                        case 3: //Save event data from the 4st Fragment (Events Manager)
-                            break;
-                        case 4: //Save status data from the 5st Fragment (Status Manager)
-                            _gdm.getUserData().setGpsLatitude(Double.valueOf(((TextView) findViewById(R.id.txt3)).getText().toString()));
-                            _gdm.getUserData().setGpsLongitude(Double.valueOf(((TextView) findViewById(R.id.txt4)).getText().toString()));
-                            break;
-                    }
-                    _dbManager.saveUserData(_gdm.getUserData());
-                    applySavedLocalProfile();
-                    Snackbar.make(view, getString(R.string.msg_save) + "[" + _vp.getCurrentItem() + "]", Snackbar.LENGTH_LONG).setAction("Action", null).show();
-
-                */
+                    
                 } catch (Exception ex) {
                     ex.printStackTrace();
                     Snackbar.make(view, "ERROR:" + ex.getMessage(), Snackbar.LENGTH_LONG).setAction("Action", null).show();
