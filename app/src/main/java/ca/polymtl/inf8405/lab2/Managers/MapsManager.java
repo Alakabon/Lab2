@@ -23,11 +23,7 @@ import java.util.*;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
-<<<<<<< HEAD
 import com.google.android.gms.maps.model.BitmapDescriptorFactory ;
-=======
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
->>>>>>> d4be63bc964fad5a59d57e0eaf152020d5cfdf57
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;

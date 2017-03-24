@@ -9,7 +9,6 @@ public class Group {
     // This boolean indicates if 3 places have been selected and are waiting on members' votes
     private boolean voting;
     private boolean voteStarted;
-    private boolean choosingFinalLocation;
     private boolean sendingAttendance;
     private HashMap<String, User> subscribedUsers = new HashMap<>();
     private HashMap<String, EventLocation> eventLocations = new HashMap<>();
@@ -18,14 +17,13 @@ public class Group {
         
     }
     
-    public Group(String name, User organizer, HashMap<String, User> subscribedUsers, HashMap<String, EventLocation> eventLocations, boolean voting, boolean voteStarted, boolean choosingFinalLocation, boolean sendingAttendance) {
+    public Group(String name, User organizer, HashMap<String, User> subscribedUsers, HashMap<String, EventLocation> eventLocations, boolean voting, boolean voteStarted, boolean sendingAttendance) {
         this.name = name;
         this.organizer = organizer;
         this.subscribedUsers = subscribedUsers;
         this.eventLocations = eventLocations;
         this.voting = voting;
         this.voteStarted = voteStarted;
-        this.choosingFinalLocation = choosingFinalLocation;
         this.sendingAttendance = sendingAttendance;
     }
     
@@ -57,10 +55,6 @@ public class Group {
         return voteStarted;
     }
 
-    public boolean getChoosingFinalLocation() {
-        return choosingFinalLocation;
-    }
-
     public boolean getSendingAttendance() {
         return sendingAttendance;
     }
@@ -75,10 +69,6 @@ public class Group {
 
     public void setVoteStarted(boolean voteStarted) {
         this.voteStarted = voteStarted;
-    }
-
-    public void setChoosingFinalLocation(boolean choosingFinalLocation) {
-        this.choosingFinalLocation = choosingFinalLocation;
     }
 
     public void setSendingAttendance(boolean sendingAttendance) {

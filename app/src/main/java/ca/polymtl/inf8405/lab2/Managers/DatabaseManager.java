@@ -127,7 +127,7 @@ public class DatabaseManager {
     
     private void createNewGroup() {
         final User user = ((GlobalDataManager) _ctx.getApplicationContext()).getUserData();
-        Group group = new Group(user.getGroup(), user, new HashMap<String, User>(), new HashMap<String, EventLocation>(), false, false, false, false);
+        Group group = new Group(user.getGroup(), user, new HashMap<String, User>(), new HashMap<String, EventLocation>(), false, false, false);
         FirebaseDatabase.getInstance().getReference().child(rootLabel).child(groupsLabel).child(user.getGroup()).setValue(group);
     }
     
