@@ -203,10 +203,10 @@ public class DatabaseManager {
         DatabaseReference groupRef = FirebaseDatabase.getInstance().getReference().child(rootLabel).child(groupsLabel).child(currentUser.getGroup());
         DatabaseReference ref = groupRef.child(eventLocationsLabel);
         // TODO - IMPORTANT disable/remove old locations
-        /*for(EventLocation event : ((GlobalDataManager) _ctx.getApplicationContext()).get_group_data().getEventLocations().values())
+        for(EventLocation event : ((GlobalDataManager) _ctx.getApplicationContext()).get_group_data().getEventLocations().values())
         {
             ref.child(event.getLocationName()).removeValue();
-        }*/
+        }
         ref.child(finalEventLocation.getLocationName()).setValue(finalEventLocation);
     }
 

@@ -373,7 +373,7 @@ public class MapsManager extends Fragment implements
 
     private void sendConfirmedLocationToServer(Marker marker)
     {
-        gdm.get_group_data().getEventLocations().clear();
+        //gdm.get_group_data().getEventLocations().clear();
         gdm.get_group_data().setSendingAttendance(true);
         ((MainActivity)getActivity()).getDatabaseManager().setSendingAttendanceStatus();
         // TODO - MINOR add Dates
